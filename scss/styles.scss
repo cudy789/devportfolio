@@ -355,7 +355,7 @@ footer {
     min-height: 200px;
     width: 100%;
     max-height: 1080px;
-    background: url(../images/csUMD.png);
+    background: url(../images/WebsiteBanner.png);
     background-size: 100% 125%;
     padding: 15px;
     overflow: hidden;
@@ -364,7 +364,7 @@ footer {
 #lead-content {
     position: absolute;
     z-index: 10;
-    top: 20%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
@@ -374,17 +374,17 @@ footer {
     }
 
     h1 {
-        color: rgb(200,200,200);
-        font-weight: 900;
+        color: rgb(50,50,50);
+        font-weight: 500;
         font-size: 5em;
-        text-transform: uppercase;
+//        text-transform: uppercase;
         letter-spacing: 0.05em;
 //        line-height: 0.9em;
     }
 
     h2 {
  /*       color: lighten($base-color, 25%);*/
-	color: $background-dark;
+	color: rgb(0,0,0);
         font-weight: 500;
         font-size: 2.25em;
         margin-bottom: 15px;
@@ -587,12 +587,14 @@ footer {
 
 #education {
     padding: 50px 15px 20px 15px;
-//    border-bottom: 5px solid $border;
     text-align: center;
+    backgroud: $background;
 
     h2 {
         color: $heading;
         margin-bottom: 50px;
+        text-align: center;
+
     }
 }
 
@@ -600,7 +602,9 @@ footer {
     max-width: 700px;
     margin: 0 auto 30px auto;
     padding: 15px;
-    border: 1px solid $background-dark;
+    border: 1px solid #e6e6e6;
+
+    background: #fff;
     text-align: left;
 
     h3 {
@@ -653,7 +657,7 @@ footer {
 .project {
     position: relative;
     max-width: 900px;
-//    min-height: 300px;
+    min-height: 435px;
     margin: 0 auto 30px auto;
     overflow: hidden;
     background: #fff;
@@ -661,11 +665,11 @@ footer {
 }
 
 .project-image {
-    position: relative;
-    float: left;
-//    position: absolute;
-//    top: 12.5%;
-//    left: 15px;
+    //position: relative;
+    //float: left;
+    position: absolute;
+    top: 25%;
+    left: 15px;
 }
 
 .project-info {
@@ -673,7 +677,7 @@ footer {
     position: absolute;
     top: 0;
     bottom: 0;
-    max-height: 300px;
+    max-height: 435px;
     margin-left: 315px;
     padding: 15px;
     h3 {
