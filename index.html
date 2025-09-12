@@ -34,10 +34,10 @@
                 </div>
                 <div class="col-md-8">
                     <p>
-		    Corey Knutson is a third year PhD Candidate in the Computer Science program at the University of Minnesota - Twin Cities. 
-		    He is a member of the <a href="https://irvlab.cs.umn.edu/">Interactive Robotics and Vision Lab</a>, led by Dr. Junaed Sattar, and his research interests lie in 
-		    sustainable autonomy for underwater robotic systems. Corey obtained his undergraduate degree in 
-		    Computer Science at the University of Minnesota - Duluth, with a minor in Electrical Engineering.
+		    Corey Knutson is a recent masters graduate from the Computer Science program at the University of Minnesota - Twin Cities, pursuing a software engineering position in the field of robotics, embedded, and flight systems.
+		    In graduate school, Corey was a member of the <a href="https://irvlab.cs.umn.edu/">Interactive Robotics and Vision Lab</a>, where he completed multiple research projects and publications in the area of sustainable autonomy for underwater robotic systems. Before grad school, Corey obtained his undergraduate degree in Computer Science at the University of Minnesota - Duluth, with a minor in Electrical Engineering.
+		    <br><br>
+		    <a href="/data/CKnutsonResume_2024F.pdf" target="_blank">Resume</a>
 		    </p>
                 </div>
             </div>
@@ -48,22 +48,22 @@
 
     <div id="education" class="background-alt">
         <h2 class="heading">Education</h2>
-        <div class="education-block">
-            <h3>University of Minnesota - Twin Cities</h3>
-            <span class="education-date">August 2021 - May 2027</span>
-            <h4>Doctor of Philosophy, Computer Science</h4>
-            <p>
-	    <b>Research focuses:</b> Underwater Field Robotics, Sustainable Autonomy, AI, Robot Control and Systems<br>
-	    <b>Honors:</b> Gauge Fellowship
-            </p>
-        </div>
         <!-- End .education-block -->
 	<div class="education-block">
             <h3>University of Minnesota - Twin Cities</h3>
             <span class="education-date">August 2021 - December 2023</span>
             <h4>Master of Science, Computer Science</h4>
             <p>
-            <b>Thesis:</b> Adaptive Landmark Color for AUV Docking in Visually Dynamic Environments<br>
+            <b>Projects:</b> Autonomous Underwater Vehicle (AUV) surface docking station design, 
+	    visual detection, and control. Medium-Cost Open (MeCO) AUV compute architecture and 
+	    software design. AUV surface attitude control.
+	    <br><br>
+	    Participated in and led over 50 field experiments in pools, lakes, rivers, research labs, 
+	    and oceans. Collaborated with departments and organizations within/outside the university 
+	    for research and demonstrations. Teleoperated 6 robots and sensors from the shore and 
+	    in the water.
+	    <br><br>
+	    <b>Honors:</b> Gauge Fellowship
             </p>
         </div>
         <!-- End .education-block -->
@@ -86,6 +86,11 @@
     <!-- End #education -->
     <div id="education" class="background-alt">
         <h2 class="heading">Publications</h2>
+	<div class="education-block">
+            <h3>Design and Development of MeCO: the Medium Cost Open-Source Autonomous Underwater Vehicle</h3>
+	    <h4>C. Ohnsted, <u><b>C. Knutson</b></u> et al.<br>
+                Submitted for publication at the 2024 IEEE OES AUV Symposium.</h4>
+        </div>
 	<div class="education-block">
             <h3>Adaptive Landmark Color for AUV Docking in Visually Dynamic Environments</h3>
             <h4><u><b>Corey Knutson</b></u>, Zhipeng Cao, and Junaed Sattar <br>
@@ -116,14 +121,48 @@
 
 
     <div id="experience" class="background-alt">
-        <h2 class="heading">Experience</h2>
+	<h2 class="heading">Experience</h2>
         <div id="experience-timeline">
-	    <div data-date="August 2021 - Current">
+	<div data-date="May 2024 - Current">
+                <h3>Perception Engineer Intern</h3>
+                <h4>Astrobotic Technologies</h4>
+                <p>
+		    Supported LiDAR hazard detection C++ flight code development for the Griffin 
+		    Mission 1 lunar lander. At the end of the 12 week internship, deliverables included:
+
+		    <li>Enhanced robustness of LiDAR data processing C++ flight code through test-driven
+			development practices. 3 existing bugs discovered and resolved. Increased 
+			code test
+			coverage of various LiDAR flight software components by 75%.</li>
+		    <li>Improved linear algebra frame transformations and spatial outlier rejection 
+			methods ofthe LiDAR data processing module. 10 pull requests merged in 
+			12 weeks.</li>
+		    <li>Decoupled algorithmic components from data streaming logic using standard design
+			patterns. Added support for temporally varying data packets, standardized 
+			exceptions and guarantees for functions manipulating the scan data, and 
+			improved time and space complexities of existing data operations.</li>
+		    <li>A new high fidelity physics-based LiDAR scan simulator written in Python. 
+			Functionality based on vendor ICD and in-house testing of the LiDAR. This 
+			tool is now used for Monte Carlo simulations for 3 projects within the 
+			company.</li>
+                </p>
+            </div>
+
+	    <div data-date="August 2021 - May 2024">
                 <h3>Teaching Assistant</h3>
                 <h4>University of Minnesota - Twin Cities</h4>
                 <p>
-                    Corey is currently a teaching assistant for computer science undergrad and graduate courses. Duties include
-                    assisting with lectures, leading lab sections, and developing lab and project materials.
+		Developed and taught lessons for CS undergraduate capstone and writing intensive class
+		Software Design and Development. Specific duties included:
+		<li>Adding functionality to a base C++ drone simulation software backend for vision
+		    recognition using OpenCV which students used in various assignments and 
+		    projects.</li>
+		<li>Running technical lab sessions, teaching students about Git/GitHub, Docker,
+		    Agile/Scrum, design patterns, and adding functionality to a simulation written 
+		    in C++.</li>
+		<li>Creating and grading assignments covering software design specifications,
+		    polymorphism, inheritance, abstraction, path planning, UML class diagrams, code
+		    quality, and design patterns.</li>
                 </p>
             </div>
 
@@ -136,9 +175,13 @@
 		and development for a variety of government contracts. Corey also received the <b>Company Hard Worker Award</b>
         for his contributions to various projects.<br>
         Specific deliverables included
-		<li>Object recognition for a robotic platform</li>
-		<li>Adding functionality to open source fuzzing tools</li>
-		<li>Implementing an AI agent designed for novelty detection in simulations</li>
+		<li>Implemented object recognition and control for a robotic platform in first 2 weeks,
+		    recorded a demo for the customer.</li>
+		<li>Integrated an AI agent into domain novelty simulations ScienceBirds and DoomViz for
+		    testing and validation. Utilized rabbitmq and Docker compose to orchestrate 
+		    simulation episodes and inter-agent communication.</li>
+		<li>Identified and patched a non-deterministic bug in the open source fuzzing 
+		    tool afl.</li>
         <br>
 
 		</p>
@@ -183,6 +226,31 @@
         <h2 class="heading">Projects</h2>
         <div class="container">
             <div class="row">
+		<div class="project shadow-large">
+            <div class="project-image">
+                <img src="images/bookend-cropped.png"/>
+            </div>
+            <div class="project-info">
+                <h3>Bookend</h3>
+                <p>
+                    Bookend is an electronic library management tool aimed to make classroom library management easier for
+                    elementary school educators. Teachers typically have hundreds of books in their library, with many books lent out to their students at a time.
+                    Some teachers use spreadsheets to keep track of their library, but constantly updating a spreadsheet is
+                    time-consuming and can lead to confusion. <br><br>
+
+                    Students can easily check in and out books with a library card and barcode scanner using an accessible interface.
+                    Teachers can add new books with a barcode scanner, add students, import books from a .csv file, view
+                    books checked out to students, and much more. <br><br>
+
+                    This software was created as part of the Minnehack 2023 Hackathon
+                    </p>
+
+                    <a href="http://cknutson.org:8080" target="_blank">Demo Site</a> | <a href="https://github.com/cudy789/bookend">GitHub</a>
+                </p>
+            </div>
+        </div>
+        <!-- End .project -->
+
                 <div class="project shadow-large">
                     <div class="project-image">
                         <img src="images/PerspectiveViewMiniBot.png" />
@@ -297,33 +365,6 @@
 		    </div>
 		</div>
 
-		<div class="project shadow-large">
-            <div class="project-image">
-                <img src="images/bookend-cropped.png"/>
-            </div>
-            <div class="project-info">
-                <h3>Bookend</h3>
-                <p>
-                    Bookend is an electronic library management tool aimed to make classroom library management easier for
-                    elementary school educators. Teachers typically have hundreds of books in their library, with many books lent out to their students at a time.
-                    Some teachers use spreadsheets to keep track of their library, but constantly updating a spreadsheet is
-                    time-consuming and can lead to confusion. <br><br>
-
-                    Students can easily check in and out books with a library card and barcode scanner using an accessible interface.
-                    Teachers can add new books with a barcode scanner, add students, import books from a .csv file, view
-                    books checked out to students, and much more. <br><br>
-
-                    This software was created as part of the Minnehack 2023 Hackathon
-                    </p>
-
-                    <a href="http://cknutson.org:8080">Demo Site</a> | <a href="https://github.com/cudy789/bookend">GitHub</a>
-                </p>
-            </div>
-        </div>
-        <!-- End .project -->
-
-
-
             </div>
         </div>
     </div>
@@ -332,15 +373,22 @@
     <div id="skills">
         <h2 class="heading">Skills</h2>
         <ul>
-            <li>ROS</li>
-            <li>Python</li>
+            <li>ROS/ROS2</li>
             <li>C/C++</li>
+            <li>Python</li>
             <li>Docker</li>
             <li>System Design</li>
+	    <li>Jira</li>
+	    <li>Git/GitHub</li>
+	    <li>Agile/Scrum</li>
             <li>Embedded Devices</li>
-            <li>CAD</li>
-            <li>3D Printing</li>
-            <li>Laser Cutting</li>
+            <li>NVIDIA Jetson</li>
+	    <li>CAN/CAN-FD</li>
+	    <li>I2C</li>
+	    <li>microROS</li>
+            <li>OpenCV</li>
+            <li>Eigen</li>
+	    <li>GTest</li>
         </ul>
     </div>
     <!-- End #skills -->

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PID Position Controller</title>
+<style>
+  body {
+    background: #121212;
+    color: #959393;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h1 {
+    margin: 30px 0 20px 0;
+    color: #d53737;
+  }
+
+  #main-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 1000px;
+  }
+
+  #canvas-container {
+    background: #1e1e1e;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+    padding: 10px;
+  }
+
+  canvas {
+    display: block;
+    border-radius: 8px;
+  }
+
+  #controls {
+      position: fixed;
+      top: 0px;   /* distance from top of viewport */
+      right: 0px; /* distance from right edge */
+      width: 220px; /* keep your existing width */
+      height: 100%;
+
+    background: #1e1e1e;
+    padding: 15px;
+    /*border-radius: 12px;*/
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  }
+
+  #controls h2 {
+    margin: 0;
+    color: #d53737;
+    text-align: center;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: #959393;
+    cursor: help;
+  }
+    /* Chrome, Safari, Edge, Opera */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+  input[type="number"] {
+    width: 60px;
+    text-align: center;
+    padding: 4px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #222;
+    color: #959393;
+  }
+
+  /* For Webkit browsers (Chrome, Edge, Safari) */
+input[type="range"] {
+  -webkit-appearance: none; /* remove default styling */
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #555; /* track background */
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #00d4ff; /* thumb color */
+  cursor: pointer;
+  border: 2px solid #222; /* optional border */
+  margin-top: -5px; /* align thumb with track */
+}
+
+/* For Firefox */
+input[type="range"]::-moz-range-track {
+  background: #555;
+  height: 6px;
+  border-radius: 3px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background: #00d4ff;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #222;
+  cursor: pointer;
+}
+
+/* For IE/Edge */
+input[type="range"]::-ms-track {
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+  height: 6px;
+}
+
+input[type="range"]::-ms-fill-lower {
+  background: #555;
+  border-radius: 3px;
+}
+
+input[type="range"]::-ms-fill-upper {
+  background: #555;
+  border-radius: 3px;
+}
+
+input[type="range"]::-ms-thumb {
+  background: #00d4ff;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #222;
+  cursor: pointer;
+  }
+  input:focus {
+    outline: none;
+    /*border-color: #d53737;*/
+    /*box-shadow: 0 0 6px #d53737;*/
+  }
+
+  #chart-container {
+    background: #1e1e1e;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+    padding: 15px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 1000px;
+  }
+</style>
+</head>
+<body>
+
+<h1>PID Position Controller</h1>
+
+<div id="main-container">
+  <div id="canvas-container">
+    <canvas id="canvas" width="400" height="350"></canvas>
+  </div>
+
+  <div id="controls">
+    <h2>Gains</h2>
+
+    <div class="control-group">
+      <label title="Proportional gain: affects how strongly the arm reacts to error">P
+        <input type="number" id="kp" step="0.1" value="5">
+      </label>
+      <input type="range" id="kp-slider" min="0" max="20" step="0.1" value="5">
+    </div>
+
+    <div class="control-group">
+      <label title="Integral gain: accumulates past errors to eliminate steady-state offset">I
+        <input type="number" id="ki" step="0.01" value="0.1">
+      </label>
+      <input type="range" id="ki-slider" min="0" max="5" step="0.01" value="0.1">
+    </div>
+
+    <div class="control-group">
+      <label title="Derivative gain: predicts future error to dampen oscillations">D
+        <input type="number" id="kd" step="0.1" value="1">
+      </label>
+      <input type="range" id="kd-slider" min="0" max="10" step="0.1" value="1">
+    </div>
+
+    <h2>Parameters</h2>
+
+    <div class="control-group">
+      <label title="Target angle of the arm in degrees">Target Angle (°)
+        <input type="number" id="target" step="1" value="0">
+      </label>
+      <input type="range" id="target-slider" min="-180" max="180" step="1" value="0">
+    </div>
+
+    <div class="control-group">
+      <label title="Mass of the bucket at the end of the arm">Mass
+        <input type="number" id="mass" step="0.1" value="1">
+      </label>
+      <input type="range" id="mass-slider" min="0.1" max="10" step="0.1" value="1">
+    </div>
+
+    <div class="control-group">
+      <label title="Gravity strength (m/s²)">Gravity
+        <input type="number" id="gravity" step="0.1" value="9.8">
+      </label>
+      <input type="range" id="gravity-slider" min="0" max="20" step="0.1" value="9.8">
+    </div>
+  </div>
+</div>
+<div id="chart-container">
+  <canvas id="pidChart"height="100"></canvas>
+</div>
+
+<script src="./js/chart.js"></script>
+<script src="./js/luxon.min.js"></script>
+<script src="./js/chartjs-adapter-luxon@1"></script>
+<script>
+// JS code for PID, drag, physics (same as before)
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// Arm state
+let angle = 0;
+let angularVelocity = 0;
+let targetAngle = 0;
+
+// PID state
+let integral = 0;
+let lastError = 0;
+
+// Parameters
+let kp = 5, ki = 0.1, kd = 1;
+let mass = 1;
+let gravity = 9.8;
+const armLength = 75;
+const damping = 0.2;
+const dt = 0.016;
+
+// Utility to parse input safely
+function safeParse(val, fallback) {
+  const parsed = parseFloat(val);
+  return isFinite(parsed) ? parsed : fallback;
+}
+
+// Link number inputs and sliders
+function bindInputSlider(numberId, sliderId, callback) {
+  const numberInput = document.getElementById(numberId);
+  const slider = document.getElementById(sliderId);
+  numberInput.addEventListener("input", e => {
+    const val = safeParse(e.target.value, callback());
+    slider.value = val;
+    callback(val);
+  });
+  slider.addEventListener("input", e => {
+    const val = safeParse(e.target.value, callback());
+    numberInput.value = val;
+    callback(val);
+  });
+}
+
+// Bind all inputs
+bindInputSlider("kp", "kp-slider", v => v!==undefined? (kp=v) : kp);
+bindInputSlider("ki", "ki-slider", v => v!==undefined? (ki=v) : ki);
+bindInputSlider("kd", "kd-slider", v => v!==undefined? (kd=v) : kd);
+bindInputSlider("target", "target-slider", v => v!==undefined? (targetAngle=v*Math.PI/180) : targetAngle);
+bindInputSlider("mass", "mass-slider", v => v!==undefined? (mass=v) : mass);
+bindInputSlider("gravity", "gravity-slider", v => v!==undefined? (gravity=v) : gravity);
+
+// Drag interaction
+let dragging = false;
+let lastMouseX = 0;
+canvas.addEventListener("mousedown", e => { dragging=true; lastMouseX=e.clientX; });
+window.addEventListener("mouseup", ()=>dragging=false);
+window.addEventListener("mousemove", e=>{
+  if(dragging){
+    const dx = e.clientX - lastMouseX;
+    lastMouseX = e.clientX;
+    angularVelocity += dx*0.01;
+  }
+});
+
+let chartAccumulator = 0;   // accumulates delta time
+const chartInterval = 0.04;  // 0.1 seconds = 10 Hz
+
+function update(){
+  // PID
+  const error = targetAngle - angle;
+  integral += error*dt;
+  const derivative = (error-lastError)/dt;
+  const control = kp*error + ki*integral + kd*derivative;
+  lastError = error;
+
+  const inertia = mass*armLength*armLength*0.0001;
+  const torqueGravity = mass*gravity*armLength*Math.sin(angle)*0.001;
+  const torque = control + torqueGravity;
+
+  const angularAcc = (torque - damping*angularVelocity)/inertia;
+  angularVelocity += angularAcc*dt;
+  angle += angularVelocity*dt;
+
+  draw();
+  // --- update chart at 10 Hz ---
+  chartAccumulator += dt;
+  if(chartAccumulator >= chartInterval) {
+    chartAccumulator = 0;
+    updateChart();  // push new data to Chart.js
+  }  requestAnimationFrame(update);
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const cx = canvas.width/2, cy=canvas.height*0.6;
+
+  // Arm
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(angle);
+  ctx.strokeStyle="#00d4ff";
+  ctx.lineWidth=8;
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(0,-armLength);
+  ctx.stroke();
+
+  // Bucket
+  ctx.fillStyle="orange";
+  const radius = 20;
+  ctx.beginPath();
+  ctx.arc(0,-armLength-20,radius,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // Target
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(targetAngle);
+  ctx.strokeStyle="red";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(0,-armLength-40);
+  ctx.stroke();
+  ctx.restore();
+
+  // Info
+  ctx.fillStyle="#959393";
+  ctx.font="14px monospace";
+  ctx.fillText("Angle: "+(angle*180/Math.PI).toFixed(1)+"°",10,20);
+  ctx.fillText("Angular Velocity: "+angularVelocity.toFixed(2),10,40);
+  ctx.fillText("Mass: "+mass.toFixed(2),10,60);
+  ctx.fillText("Gravity: "+gravity.toFixed(2),10,80);
+}
+
+  const ctxChart = document.getElementById('pidChart').getContext('2d');
+
+  const pidChart = new Chart(ctxChart, {
+    type: 'line',
+    data: {
+      labels: [], // time
+      datasets: [
+        { label: 'Angle', data: [], borderColor: '#00d4ff', fill: false },
+        { label: 'Target Angle', data: [], borderColor: '#ff5555', fill: false },
+        { label: 'Angular Velocity', data: [], borderColor: '#ffaa00', fill: false, hidden: true },
+        { label: 'Mass', data: [], borderColor: '#44ff44', fill: false, hidden: true },
+        { label: 'Gravity', data: [], borderColor: '#ff44ff', fill: false, hidden: true },
+        { label: 'Kp', data: [], borderColor: '#00ffff', fill: false, hidden: true },
+        { label: 'Ki', data: [], borderColor: '#ffff00', fill: false, hidden: true },
+        { label: 'Kd', data: [], borderColor: '#ff8800', fill: false, hidden: true },
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: false,
+      plugins: {
+        legend: { labels: { color: '#ccc' } }
+      },
+      scales: {
+        x: { ticks: { color: '#ccc' }, title: { display: true, text: 'Time (s)', color:'#ccc' } },
+        y: { ticks: { color: '#ccc' }, title: { display: true, text: 'Values', color:'#ccc' } }
+      }
+    }
+  });
+
+  let time = 0;
+  function updateChart() {
+    time += chartInterval;
+    pidChart.data.labels.push(time.toFixed(2));
+    pidChart.data.datasets[0].data.push(angle * 180/Math.PI);
+    pidChart.data.datasets[1].data.push(targetAngle * 180/Math.PI);
+    pidChart.data.datasets[2].data.push(angularVelocity);
+    pidChart.data.datasets[3].data.push(mass);
+    pidChart.data.datasets[4].data.push(gravity);
+    pidChart.data.datasets[5].data.push(kp);
+    pidChart.data.datasets[6].data.push(ki);
+    pidChart.data.datasets[7].data.push(kd);
+
+    // Limit number of points
+    if(pidChart.data.labels.length > 200) {
+      pidChart.data.labels.shift();
+      pidChart.data.datasets.forEach(ds => ds.data.shift());
+    }
+
+    // pidChart.options.scales.x.min = -10;
+    // pidChart.options.scales.x.max = pidChart.data.labels[-1];
+  // const firstTime = parseFloat(pidChart.data.labels[0]);
+  // const lastTime = parseFloat(pidChart.data.labels[pidChart.data.labels.length - 1]);
+  // pidChart.options.scales.x.min = firstTime;
+  // pidChart.options.scales.x.max = lastTime;
+
+
+    pidChart.update('none');
+  }
+
+update();
+</script>
+</body>
+</html>
