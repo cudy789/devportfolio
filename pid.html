@@ -20,44 +20,76 @@
     color: #d53737;
   }
 
-  #main-container {
+  .main-content-row{
     display: flex;
-    flex-direction: row;
-    gap: 20px;
-    align-items: flex-start;
-    width: 100%;
-    max-width: 1000px;
+    flex-wrap: wrap;      /* allow columns to wrap on small screens */
+    gap: 20px;            /* spacing between columns */
+    width: 100%;          /* take full width */
+    justify-content: center; /* center content */
   }
 
-  #canvas-container {
-    background: #1e1e1e;
+  .content-row{
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      width: 100%;
+  }
+
+  .content-column{
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      /*height: 100%;*/
+      width: fit-content;
+  }
+  .content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+    /*width: 100%;*/
+    max-width: 1000px;
+
+          background: #1e1e1e;
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(0,0,0,0.7);
     padding: 10px;
+      /*margin: 20px 0px 0px 0px;*/
+      margin: 10px;
   }
+
 
   canvas {
     display: block;
     border-radius: 8px;
+      width: 400px;
   }
 
   #controls {
-      position: fixed;
-      top: 0px;   /* distance from top of viewport */
-      right: 0px; /* distance from right edge */
-      width: 220px; /* keep your existing width */
-      height: 100%;
+      /*position: fixed;*/
+      /*top: 0px;   !* distance from top of viewport *!*/
+      /*right: 0px; !* distance from right edge *!*/
+      /*width: 220px; !* keep your existing width *!*/
+      /*height: 100%;*/
 
     background: #1e1e1e;
     padding: 15px;
-    /*border-radius: 12px;*/
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
+      height: 100%;
+      width: 220px;
     gap: 20px;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      margin: 10px 10px 10px 10px;
   }
 
-  #controls h2 {
+  #level-controls{
+      width: fit-content;
+  }
+
+
+  h2 {
     margin: 0;
     color: #d53737;
     text-align: center;
@@ -166,14 +198,37 @@ input[type="range"]::-ms-thumb {
     /*box-shadow: 0 0 6px #d53737;*/
   }
 
+  /* General button styling */
+button {
+  background: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px 18px;
+  margin: 6px;
+  font-size: 14px;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+/* Hover effect */
+button:hover {
+  background: #2b2b2b;
+  border-color: #555;
+  color: #ffffff;
+  box-shadow: 0 0 6px #00d4ff;
+}
+
   #chart-container {
     background: #1e1e1e;
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(0,0,0,0.7);
-    padding: 15px;
-    margin-top: 20px;
+      min-width: 750px;
     width: 100%;
-    max-width: 1000px;
+            margin: 10px;
+
   }
 </style>
 </head>
@@ -182,11 +237,34 @@ input[type="range"]::-ms-thumb {
 <h1>PID Position Controller</h1>
 
 <div id="main-container">
-  <div id="canvas-container">
-    <canvas id="canvas" width="400" height="350"></canvas>
+    <div class="main-content-row">
+    <div class="content-column">
+    <div class="content-row">
+
+  <div class="content-container">
+    <canvas id="canvas" width="400" height="400"></canvas>
   </div>
 
-  <div id="controls">
+    <div class="content-container" id="level-controls">
+        <h2>Simulation Controls</h2>
+        <div class="control-group">
+            <div class="content-row">
+                <button class="btn btn-primary" id="speedDown" type="submit"><<</button>
+                <button class="btn btn-primary" id="pause-start" type="submit">Pause</button>
+                <button class="btn btn-primary" id="speedUp" type="submit">>></button>
+            </div>
+            <button class="btn btn-primary" id="reset" type="submit">Reset</button>
+        </div>
+    </div>
+ </div>
+
+
+<div id="chart-container">
+  <canvas id="pidChart"></canvas>
+</div>
+    </div>
+
+    <div id="controls">
     <h2>Gains</h2>
 
     <div class="control-group">
@@ -198,9 +276,9 @@ input[type="range"]::-ms-thumb {
 
     <div class="control-group">
       <label title="Integral gain: accumulates past errors to eliminate steady-state offset">I
-        <input type="number" id="ki" step="0.01" value="0.1">
+        <input type="number" id="ki" step="0.01" value="0">
       </label>
-      <input type="range" id="ki-slider" min="0" max="5" step="0.01" value="0.1">
+      <input type="range" id="ki-slider" min="0" max="5" step="0.01" value="0.0">
     </div>
 
     <div class="control-group">
@@ -208,6 +286,13 @@ input[type="range"]::-ms-thumb {
         <input type="number" id="kd" step="0.1" value="1">
       </label>
       <input type="range" id="kd-slider" min="0" max="10" step="0.1" value="1">
+    </div>
+
+      <div class="control-group">
+      <label title="Feed forward gain: applies an offset force proportional to the sin of the target angle">FF
+        <input type="number" id="kff" step="0.1" value="0">
+      </label>
+      <input type="range" id="kff-slider" min="0" max="10" step="0.1" value="0">
     </div>
 
     <h2>Parameters</h2>
@@ -227,16 +312,14 @@ input[type="range"]::-ms-thumb {
     </div>
 
     <div class="control-group">
-      <label title="Gravity strength (m/s²)">Gravity
-        <input type="number" id="gravity" step="0.1" value="9.8">
+      <label title="Gravity enabled/disabled">Gravity
+        <input type="checkbox" id="gravity" value="" checked>
       </label>
-      <input type="range" id="gravity-slider" min="0" max="20" step="0.1" value="9.8">
     </div>
   </div>
+        </div>
 </div>
-<div id="chart-container">
-  <canvas id="pidChart"height="100"></canvas>
-</div>
+
 
 <script src="./js/chart.js"></script>
 <script src="./js/luxon.min.js"></script>
@@ -256,12 +339,13 @@ let integral = 0;
 let lastError = 0;
 
 // Parameters
-let kp = 5, ki = 0.1, kd = 1;
+let kp = 5, ki = 0.0, kd = 1, kff = 0.0;
 let mass = 1;
 let gravity = 9.8;
 const armLength = 75;
 const damping = 0.2;
-const dt = 0.016;
+let dt = 0.016;
+let lastDt = dt;
 
 // Utility to parse input safely
 function safeParse(val, fallback) {
@@ -285,39 +369,110 @@ function bindInputSlider(numberId, sliderId, callback) {
   });
 }
 
+function bindInputCheckbox(checkboxId, callback){
+    const checkboxInput = document.getElementById(checkboxId);
+    checkboxInput.addEventListener("change", e => {
+        const checked = checkboxInput.checked;
+        callback(checked);
+
+    });
+}
+function bindButton(buttonId, callback){
+    const buttonInput = document.getElementById(buttonId);
+    buttonInput.addEventListener("click", e => {
+        console.log("button toggled");
+        const value = buttonInput.textContent;
+        callback(value);
+    })
+}
+
 // Bind all inputs
 bindInputSlider("kp", "kp-slider", v => v!==undefined? (kp=v) : kp);
 bindInputSlider("ki", "ki-slider", v => v!==undefined? (ki=v) : ki);
 bindInputSlider("kd", "kd-slider", v => v!==undefined? (kd=v) : kd);
+bindInputSlider("kff", "kff-slider", v => v!==undefined? (kff=v) : kff);
 bindInputSlider("target", "target-slider", v => v!==undefined? (targetAngle=v*Math.PI/180) : targetAngle);
 bindInputSlider("mass", "mass-slider", v => v!==undefined? (mass=v) : mass);
-bindInputSlider("gravity", "gravity-slider", v => v!==undefined? (gravity=v) : gravity);
+bindInputCheckbox("gravity", v => v ? (gravity=9.8) : (gravity=0))
+bindButton("speedUp", () => {dt < 0.256 ? dt *= 2 : dt=0.256;})
+bindButton("speedDown", () => {dt !== 0.001 ? dt /= 2.0 : dt=0.001;})
 
-// Drag interaction
+const pauseStartButton = document.getElementById("pause-start");
+pauseStartButton.addEventListener("click", e => {
+    if (pauseStartButton.textContent === "Pause"){
+        pauseStartButton.textContent = "Start";
+        lastDt = dt;
+        dt = 0;
+    } else{
+        pauseStartButton.textContent = "Pause";
+        dt = lastDt;
+    }
+});
+const resetButton = document.getElementById("reset");
+resetButton.addEventListener("click", e => {
+    angle=0;
+    angularVelocity=0;
+    targetAngle=0;
+    integral=0;
+    dt = 0.016
+    lastDt = 0.016;
+
+    const target = document.getElementById("target");
+    target.value=0;
+    const target_slider = document.getElementById("target-slider");
+    target_slider.value=0;
+    pauseStartButton.textContent = "Pause";
+
+});
+
+// Drag interaction (natural torque)
 let dragging = false;
-let lastMouseX = 0;
-canvas.addEventListener("mousedown", e => { dragging=true; lastMouseX=e.clientX; });
+const pivot = {x: canvas.width/2, y: canvas.height*0.6};
+canvas.addEventListener("mousedown", e => { dragging=true; });
 window.addEventListener("mouseup", ()=>dragging=false);
 window.addEventListener("mousemove", e=>{
   if(dragging){
-    const dx = e.clientX - lastMouseX;
-    lastMouseX = e.clientX;
-    angularVelocity += dx*0.01;
+    // Vector from pivot to mouse
+    const mx = e.offsetX - pivot.x;
+    const my = e.offsetY - pivot.y;
+
+    // Arm direction (unit vector)
+    const armDir = {x: Math.sin(angle), y: -Math.cos(angle)};
+    // Perpendicular to arm (torque direction)
+    const armPerp = {x: -armDir.y, y: armDir.x};
+
+    // Project mouse vector onto perpendicular
+    const forceMag = (mx*armPerp.x + my*armPerp.y) * 0.0025;
+    angularVelocity += forceMag;
   }
 });
 
+// Load image assets
+
+const armImage = new Image();
+armImage.src = './pid_sim_images/arm.png';
+armImage.onload = () => {
+    console.log("Arm image loaded");
+};
+
+const robotBaseImage = new Image();
+robotBaseImage.src = './pid_sim_images/robot_base.png';
+robotBaseImage.onload = () => {
+    console.log("Robot base image loaded");
+};
+
 let chartAccumulator = 0;   // accumulates delta time
-const chartInterval = 0.04;  // 0.1 seconds = 10 Hz
+const chartInterval = 0.025;
 
 function update(){
   // PID
   const error = targetAngle - angle;
-  integral += error*dt;
-  const derivative = (error-lastError)/dt;
-  const control = kp*error + ki*integral + kd*derivative;
+  ki > 0 ? integral += error*dt: integral = 0;
+  const derivative = dt > 0 ? (error-lastError)/dt : 0;
+  const control = kp*error + ki*integral + kd*derivative + -kff*Math.sin(targetAngle);
   lastError = error;
 
-  const inertia = mass*armLength*armLength*0.0001;
+  const inertia = mass*armLength*armLength*0.00005;
   const torqueGravity = mass*gravity*armLength*Math.sin(angle)*0.001;
   const torque = control + torqueGravity;
 
@@ -329,8 +484,8 @@ function update(){
   // --- update chart at 10 Hz ---
   chartAccumulator += dt;
   if(chartAccumulator >= chartInterval) {
-    chartAccumulator = 0;
-    updateChart();  // push new data to Chart.js
+      updateChart();  // push new data to Chart.js
+      chartAccumulator = 0;
   }  requestAnimationFrame(update);
 }
 
@@ -338,23 +493,56 @@ function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const cx = canvas.width/2, cy=canvas.height*0.6;
 
-  // Arm
-  ctx.save();
-  ctx.translate(cx,cy);
-  ctx.rotate(angle);
-  ctx.strokeStyle="#00d4ff";
-  ctx.lineWidth=8;
+
+  // Ground plane
+  ctx.strokeStyle = "#444";
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(0,0);
-  ctx.lineTo(0,-armLength);
+  ctx.moveTo(0, cy+60);
+  ctx.lineTo(canvas.width, cy+60);
   ctx.stroke();
 
-  // Bucket
-  ctx.fillStyle="orange";
-  const radius = 20;
-  ctx.beginPath();
-  ctx.arc(0,-armLength-20,radius,0,Math.PI*2);
-  ctx.fill();
+
+  // // Arm
+  // ctx.save();
+  // ctx.translate(cx,cy);
+  // ctx.rotate(angle);
+  // ctx.strokeStyle="#00d4ff";
+  // ctx.lineWidth=8;
+  // ctx.beginPath();
+  // ctx.moveTo(0,0);
+  // ctx.lineTo(0,-armLength);
+  // ctx.stroke();
+  //
+  // // Bucket
+  // ctx.fillStyle="orange";
+  // const radius = 20;
+  // ctx.beginPath();
+  // ctx.arc(0,-armLength-20,radius,0,Math.PI*2);
+  // ctx.fill();
+  // ctx.restore();
+
+  // Draw arm image
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+
+  // Draw image centered on base
+  ctx.drawImage(
+    armImage,
+    -armImage.width/2, // shift x to center horizontally
+    -armImage.height + 10 // shift y so pivot is at bottom of image
+  );
+  ctx.restore();
+
+  // Draw robot base image
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.drawImage(
+      robotBaseImage,
+      -robotBaseImage.width/2,
+      -robotBaseImage.height/2 + 20
+  );
   ctx.restore();
 
   // Target
@@ -365,17 +553,17 @@ function draw(){
   ctx.lineWidth=2;
   ctx.beginPath();
   ctx.moveTo(0,0);
-  ctx.lineTo(0,-armLength-40);
+  ctx.lineTo(0,-armLength-60);
   ctx.stroke();
   ctx.restore();
 
   // Info
   ctx.fillStyle="#959393";
   ctx.font="14px monospace";
-  ctx.fillText("Angle: "+(angle*180/Math.PI).toFixed(1)+"°",10,20);
-  ctx.fillText("Angular Velocity: "+angularVelocity.toFixed(2),10,40);
-  ctx.fillText("Mass: "+mass.toFixed(2),10,60);
-  ctx.fillText("Gravity: "+gravity.toFixed(2),10,80);
+  ctx.fillText("Simulation Speed: "+(dt/0.016).toFixed(2)+"x",10,20);
+  ctx.fillText("Angle: "+(angle*180/Math.PI).toFixed(1)+"°",10,40);
+  ctx.fillText("Angular Velocity: "+angularVelocity.toFixed(2),10,60);
+  ctx.fillText("Click & drag arm to induce a disturbance",10,390);
 }
 
   const ctxChart = document.getElementById('pidChart').getContext('2d');
@@ -387,12 +575,9 @@ function draw(){
       datasets: [
         { label: 'Angle', data: [], borderColor: '#00d4ff', fill: false },
         { label: 'Target Angle', data: [], borderColor: '#ff5555', fill: false },
+        { label: 'Error', data: [], borderColor: '#16b300', fill: false },
         { label: 'Angular Velocity', data: [], borderColor: '#ffaa00', fill: false, hidden: true },
-        { label: 'Mass', data: [], borderColor: '#44ff44', fill: false, hidden: true },
-        { label: 'Gravity', data: [], borderColor: '#ff44ff', fill: false, hidden: true },
-        { label: 'Kp', data: [], borderColor: '#00ffff', fill: false, hidden: true },
-        { label: 'Ki', data: [], borderColor: '#ffff00', fill: false, hidden: true },
-        { label: 'Kd', data: [], borderColor: '#ff8800', fill: false, hidden: true },
+        { label: 'Integral', data: [], borderColor: '#ff8800', fill: false, hidden: true },
       ]
     },
     options: {
@@ -402,7 +587,7 @@ function draw(){
         legend: { labels: { color: '#ccc' } }
       },
       scales: {
-        x: { ticks: { color: '#ccc' }, title: { display: true, text: 'Time (s)', color:'#ccc' } },
+        x: { type: 'linear', ticks: { color: '#ccc', callback: function(value) {return value.toFixed(2);} }, title: { display: true, text: 'Time (s)', color:'#ccc' } },
         y: { ticks: { color: '#ccc' }, title: { display: true, text: 'Values', color:'#ccc' } }
       }
     }
@@ -410,30 +595,28 @@ function draw(){
 
   let time = 0;
   function updateChart() {
-    time += chartInterval;
-    pidChart.data.labels.push(time.toFixed(2));
+    time += chartAccumulator;
+    pidChart.data.labels.push(time);
     pidChart.data.datasets[0].data.push(angle * 180/Math.PI);
     pidChart.data.datasets[1].data.push(targetAngle * 180/Math.PI);
-    pidChart.data.datasets[2].data.push(angularVelocity);
-    pidChart.data.datasets[3].data.push(mass);
-    pidChart.data.datasets[4].data.push(gravity);
-    pidChart.data.datasets[5].data.push(kp);
-    pidChart.data.datasets[6].data.push(ki);
-    pidChart.data.datasets[7].data.push(kd);
+    pidChart.data.datasets[2].data.push(lastError * 180/Math.PI);
+    pidChart.data.datasets[3].data.push(angularVelocity);
+    pidChart.data.datasets[4].data.push(integral);
 
-    // Limit number of points
-    if(pidChart.data.labels.length > 200) {
-      pidChart.data.labels.shift();
-      pidChart.data.datasets.forEach(ds => ds.data.shift());
-    }
+    // // Limit number of points
+    // if(pidChart.data.labels.length > 200) {
+    //   pidChart.data.labels.shift();
+    //   pidChart.data.datasets.forEach(ds => ds.data.shift());
+    // }
 
-    // pidChart.options.scales.x.min = -10;
-    // pidChart.options.scales.x.max = pidChart.data.labels[-1];
-  // const firstTime = parseFloat(pidChart.data.labels[0]);
-  // const lastTime = parseFloat(pidChart.data.labels[pidChart.data.labels.length - 1]);
-  // pidChart.options.scales.x.min = firstTime;
-  // pidChart.options.scales.x.max = lastTime;
+    while (pidChart.data.labels.length > 0 &&
+         parseFloat(pidChart.data.labels[0]) < time - 10) {
+    pidChart.data.labels.shift();
+    pidChart.data.datasets.forEach(ds => ds.data.shift());
+  }
 
+  pidChart.options.scales.x.min = (time - 10);
+  pidChart.options.scales.x.max = time;
 
     pidChart.update('none');
   }
