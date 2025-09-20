@@ -383,7 +383,7 @@ let kineticFriction = 0.05;
 let torque = 0;
 
 // Noise parameters
-let processNoise = 0;
+let processNoise = 0.01;
 let deadtime = true;
 
 let dt = 0.016;
@@ -525,7 +525,7 @@ function update(){
   // If deadtime enabled, error is one time step behind
   let error = deadtime ? lastError : targetAngle - angle;
   // Add process noises, if enabled
-  if (processNoise > 0){
+  if (processNoise > 0 && dt > 0){
     error += gaussianSample(0, processNoise);
   }
 
