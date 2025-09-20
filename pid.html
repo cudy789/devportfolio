@@ -470,14 +470,14 @@ resetButton.addEventListener("click", e => {
     angularVelocity=0;
     targetAngle=0;
     integral=0;
-    dt = 0.016
+    dt = 0;
     lastDt = 0.016;
 
     const target = document.getElementById("target");
     target.value=0;
     const target_slider = document.getElementById("target-slider");
     target_slider.value=0;
-    pauseStartButton.textContent = "Pause";
+    pauseStartButton.textContent = "Start";
 
 });
 
