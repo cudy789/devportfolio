@@ -278,14 +278,14 @@ button:hover {
       <label title="Integral gain: accumulates past errors to eliminate steady-state offset">I
         <input type="number" id="ki" step="0.01" value="0">
       </label>
-      <input type="range" id="ki-slider" min="0" max="5" step="0.01" value="0.0">
+      <input type="range" id="ki-slider" min="0" max="1" step="0.01" value="0.0">
     </div>
 
     <div class="control-group">
       <label title="Derivative gain: predicts future error to dampen oscillations">D
-        <input type="number" id="kd" step="0.1" value="1">
+        <input type="number" id="kd" step="0.1" value="0">
       </label>
-      <input type="range" id="kd-slider" min="0" max="10" step="0.1" value="1">
+      <input type="range" id="kd-slider" min="0" max="10" step="0.1" value="0">
     </div>
 
       <div class="control-group">
@@ -305,10 +305,31 @@ button:hover {
     </div>
 
     <div class="control-group">
-      <label title="Mass of the bucket at the end of the arm">Mass
+      <label title="Mass of the arm">Mass
         <input type="number" id="mass" step="0.1" value="1">
       </label>
       <input type="range" id="mass-slider" min="0.1" max="10" step="0.1" value="1">
+    </div>
+
+<!--    <div class="control-group">-->
+<!--      <label title="Length of the arm">Arm Length-->
+<!--        <input type="number" id="arm-length" step="1" value="75">-->
+<!--      </label>-->
+<!--      <input type="range" id="arm-length-slider" min="1" max="150" step="1" value="75">-->
+<!--    </div>-->
+
+    <div class="control-group">
+      <label title="Drag adds a damping force to the arm. This is neither static NOR kinetic friction. Drag is proportional to velocity.">Drag
+        <input type="number" id="drag" step="0.05" value="1">
+      </label>
+      <input type="range" id="drag-slider" min="0.0" max="5" step="0.05" value="1">
+    </div>
+
+    <div class="control-group">
+      <label title="Kinetic friction is a force acting against the motion of the arm. It is NOT proportional to velocity, it is constant.">Kinetic friction
+        <input type="number" id="kinetic-friction" step="0.05" value="0.05">
+      </label>
+      <input type="range" id="kinetic-friction-slider" min="0.0" max="0.25" step="0.0005" value="0.05">
     </div>
 
     <div class="control-group">
@@ -339,11 +360,14 @@ let integral = 0;
 let lastError = 0;
 
 // Parameters
-let kp = 5, ki = 0.0, kd = 1, kff = 0.0;
+let kp = 5, ki = 0.0, kd = 0, kff = 0.0;
 let mass = 1;
 let gravity = 9.8;
-const armLength = 75;
-const damping = 0.2;
+let armLength = 75;
+let drag = 1.0;
+let kineticFriction = 0.05;
+let torque = 0;
+
 let dt = 0.016;
 let lastDt = dt;
 
@@ -393,6 +417,9 @@ bindInputSlider("kd", "kd-slider", v => v!==undefined? (kd=v) : kd);
 bindInputSlider("kff", "kff-slider", v => v!==undefined? (kff=v) : kff);
 bindInputSlider("target", "target-slider", v => v!==undefined? (targetAngle=v*Math.PI/180) : targetAngle);
 bindInputSlider("mass", "mass-slider", v => v!==undefined? (mass=v) : mass);
+// bindInputSlider("arm-length", "arm-length-slider", v => v!==undefined? (armLength=v) : armLength);
+bindInputSlider("drag", "drag-slider", v => v!==undefined? (drag=v) : drag);
+bindInputSlider("kinetic-friction", "kinetic-friction-slider", v => v!==undefined? (kineticFriction=v) : kineticFriction);
 bindInputCheckbox("gravity", v => v ? (gravity=9.8) : (gravity=0))
 bindButton("speedUp", () => {dt < 0.256 ? dt *= 2 : dt=0.256;})
 bindButton("speedDown", () => {dt !== 0.001 ? dt /= 2.0 : dt=0.001;})
@@ -462,7 +489,7 @@ robotBaseImage.onload = () => {
 };
 
 let chartAccumulator = 0;   // accumulates delta time
-const chartInterval = 0.025;
+const chartInterval = dt/2.0;
 
 function update(){
   // PID
@@ -474,10 +501,23 @@ function update(){
 
   const inertia = mass*armLength*armLength*0.00005;
   const torqueGravity = mass*gravity*armLength*Math.sin(angle)*0.001;
-  const torque = control + torqueGravity;
+  torque = control + torqueGravity;
 
-  const angularAcc = (torque - damping*angularVelocity)/inertia;
+  if (angularVelocity > 0){
+      torque -= kineticFriction;
+  } else if (angularVelocity < 0){
+      torque += kineticFriction;
+  }
+  torque += (-drag * angularVelocity);
+
+  let angularAcc = torque/inertia;
   angularVelocity += angularAcc*dt;
+  // This is static friction. Don't freeze motion if we have large control force
+  const staticFrictionMagicNumber = 0.01 / mass;
+  if (Math.abs(kineticFriction) > 0 && Math.abs(angularVelocity) < staticFrictionMagicNumber && Math.abs(angularAcc)*dt < staticFrictionMagicNumber){
+      angularVelocity = 0;
+  }
+
   angle += angularVelocity*dt;
 
   draw();
@@ -531,7 +571,7 @@ function draw(){
   ctx.drawImage(
     armImage,
     -armImage.width/2, // shift x to center horizontally
-    -armImage.height + 10 // shift y so pivot is at bottom of image
+    -armImage.height + 10, // shift y so pivot is at bottom of image
   );
   ctx.restore();
 
@@ -563,6 +603,7 @@ function draw(){
   ctx.fillText("Simulation Speed: "+(dt/0.016).toFixed(2)+"x",10,20);
   ctx.fillText("Angle: "+(angle*180/Math.PI).toFixed(1)+"°",10,40);
   ctx.fillText("Angular Velocity: "+angularVelocity.toFixed(2),10,60);
+  ctx.fillText("Torque: "+torque.toFixed(2),10,80);
   ctx.fillText("Click & drag arm to induce a disturbance",10,390);
 }
 
@@ -573,10 +614,10 @@ function draw(){
     data: {
       labels: [], // time
       datasets: [
-        { label: 'Angle', data: [], borderColor: '#00d4ff', fill: false },
-        { label: 'Target Angle', data: [], borderColor: '#ff5555', fill: false },
-        { label: 'Error', data: [], borderColor: '#16b300', fill: false },
-        { label: 'Angular Velocity', data: [], borderColor: '#ffaa00', fill: false, hidden: true },
+        { label: 'Angle', data: [], borderColor: '#00d4ff', fill: false, hidden: true },
+        { label: 'Target Angle', data: [], borderColor: '#ff5555', fill: false, hidden: true },
+        { label: 'Error', data: [], borderColor: '#16b300', fill: false, hidden: true },
+        { label: 'Angular Velocity', data: [], borderColor: '#ffaa00', fill: false },
         { label: 'Integral', data: [], borderColor: '#ff8800', fill: false, hidden: true },
       ]
     },
