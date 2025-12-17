@@ -1,356 +1,350 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>PID Position Controller</title>
-<style>
-  body {
-    background: #121212;
-    color: #959393;
-    font-family: "Segoe UI", Roboto, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-    padding: 20px;
-  }
+    <meta charset="UTF-8"/>
+    <title>PID Position Controller Simulation</title>
+    <style>
+        body {
+            background: #121212;
+            color: #959393;
+            font-family: "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
 
-  h1 {
-    margin: 30px 0 20px 0;
-    color: #d53737;
-  }
+        h1 {
+            margin: 20px 0 20px 0;
+            color: #d53737;
+        }
 
-  .main-content-row{
-    display: flex;
-    flex-wrap: wrap;      /* allow columns to wrap on small screens */
-    gap: 20px;            /* spacing between columns */
-    width: 100%;          /* take full width */
-    justify-content: center; /* center content */
-  }
+        .main-content-row {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+        }
 
-  .content-row{
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      width: 100%;
-  }
+        .content-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            width: 100%;
+        }
 
-  .content-column{
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      /*height: 100%;*/
-      width: fit-content;
-  }
-  .content-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    align-items: flex-start;
-    /*width: 100%;*/
-    max-width: 1000px;
+        .content-column {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 40px;
+            width: fit-content;
+        }
 
-          background: #1e1e1e;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.7);
-    padding: 10px;
-      /*margin: 20px 0px 0px 0px;*/
-      margin: 10px;
-  }
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: flex-start;
+            max-width: 1000px;
 
-
-  canvas {
-    display: block;
-    border-radius: 8px;
-      width: 400px;
-  }
-
-  #controls {
-      /*position: fixed;*/
-      /*top: 0px;   !* distance from top of viewport *!*/
-      /*right: 0px; !* distance from right edge *!*/
-      /*width: 220px; !* keep your existing width *!*/
-      /*height: 100%;*/
-
-    background: #1e1e1e;
-    padding: 15px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-      height: 100%;
-      width: 220px;
-    gap: 20px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      margin: 10px 10px 10px 10px;
-  }
-
-  #level-controls{
-      width: fit-content;
-  }
-
-
-  h2 {
-    margin: 0;
-    color: #d53737;
-    text-align: center;
-  }
-
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    color: #959393;
-    cursor: help;
-  }
-    /* Chrome, Safari, Edge, Opera */
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    /* Firefox */
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
-  input[type="number"] {
-    width: 60px;
-    text-align: center;
-    padding: 4px;
-    border: 1px solid #555;
-    border-radius: 4px;
-    background: #222;
-    color: #959393;
-  }
-
-  /* For Webkit browsers (Chrome, Edge, Safari) */
-input[type="range"] {
-  -webkit-appearance: none; /* remove default styling */
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #555; /* track background */
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #00d4ff; /* thumb color */
-  cursor: pointer;
-  border: 2px solid #222; /* optional border */
-  margin-top: -5px; /* align thumb with track */
-}
-
-/* For Firefox */
-input[type="range"]::-moz-range-track {
-  background: #555;
-  height: 6px;
-  border-radius: 3px;
-}
-
-input[type="range"]::-moz-range-thumb {
-  background: #00d4ff;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid #222;
-  cursor: pointer;
-}
-
-/* For IE/Edge */
-input[type="range"]::-ms-track {
-  background: transparent;
-  border-color: transparent;
-  color: transparent;
-  height: 6px;
-}
-
-input[type="range"]::-ms-fill-lower {
-  background: #555;
-  border-radius: 3px;
-}
-
-input[type="range"]::-ms-fill-upper {
-  background: #555;
-  border-radius: 3px;
-}
-
-input[type="range"]::-ms-thumb {
-  background: #00d4ff;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid #222;
-  cursor: pointer;
-  }
-  input:focus {
-    outline: none;
-    /*border-color: #d53737;*/
-    /*box-shadow: 0 0 6px #d53737;*/
-  }
-
-  /* General button styling */
-button {
-  background: #1e1e1e;
-  color: #e0e0e0;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 10px 18px;
-  margin: 6px;
-  font-size: 14px;
-  font-family: "Segoe UI", Roboto, sans-serif;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-}
-
-/* Hover effect */
-button:hover {
-  background: #2b2b2b;
-  border-color: #555;
-  color: #ffffff;
-  box-shadow: 0 0 6px #00d4ff;
-}
-
-  #chart-container {
-    background: #1e1e1e;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.7);
-      min-width: 750px;
-    width: 100%;
+            background: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            padding: 20px;
             margin: 10px;
+        }
 
-  }
-</style>
+        .content-header {
+            text-align: center;
+            gap: 20px;
+            width: 95%;
+
+            background: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            margin: 10px;
+        }
+
+
+        canvas {
+            display: block;
+            border-radius: 8px;
+            width: 400px;
+        }
+
+        #controls {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 220px;
+            gap: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            margin: 10px 10px 10px 10px;
+        }
+
+        #level-controls {
+            align-items: center;
+            width: fit-content;
+        }
+
+        h2 {
+            margin: 0;
+            color: #d53737;
+            text-align: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #959393;
+            cursor: help;
+        }
+
+        /* Chrome, Safari, Edge, Opera */
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            text-align: center;
+            padding: 4px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #222;
+            color: #959393;
+        }
+
+        /* For Webkit browsers (Chrome, Edge, Safari) */
+        input[type="range"] {
+            -webkit-appearance: none; /* remove default styling */
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #555; /* track background */
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00d4ff;
+            cursor: pointer;
+            border: 2px solid #222;
+            margin-top: -5px; /* align thumb with track */
+        }
+
+        /* For Firefox */
+        input[type="range"]::-moz-range-track {
+            background: #555;
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            background: #00d4ff;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #222;
+            cursor: pointer;
+        }
+
+        /* For IE/Edge */
+        input[type="range"]::-ms-track {
+            background: transparent;
+            border-color: transparent;
+            color: transparent;
+            height: 6px;
+        }
+
+        input[type="range"]::-ms-fill-lower {
+            background: #555;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-ms-fill-upper {
+            background: #555;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-ms-thumb {
+            background: #00d4ff;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #222;
+            cursor: pointer;
+        }
+
+        input:focus {
+            outline: none;
+        }
+
+        button {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 18px;
+            margin: 6px;
+            font-size: 14px;
+            font-family: "Segoe UI", Roboto, sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        button:hover {
+            background: #2b2b2b;
+            border-color: #555;
+            color: #ffffff;
+            box-shadow: 0 0 6px #00d4ff;
+        }
+
+        #chart-container {
+            background: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            min-width: 750px;
+            width: 100%;
+            margin: 10px;
+        }
+    </style>
 </head>
 <body>
 
-<h1>PID Position Controller</h1>
 
 <div id="main-container">
     <div class="main-content-row">
-    <div class="content-column">
-    <div class="content-row">
 
-  <div class="content-container">
-    <canvas id="canvas" width="400" height="400"></canvas>
-  </div>
-
-    <div class="content-container" id="level-controls">
-        <h2>Simulation Controls</h2>
-        <div class="control-group">
-            <div class="content-row">
-                <button class="btn btn-primary" id="speedDown" type="submit"><<</button>
-                <button class="btn btn-primary" id="pause-start" type="submit">Pause</button>
-                <button class="btn btn-primary" id="speedUp" type="submit">>></button>
+        <div class="content-column">
+            <div class="content-header">
+                <h1>PID Position Controller Simulation</h1>
             </div>
-            <button class="btn btn-primary" id="reset" type="submit">Reset</button>
+            <div class="content-row">
+                <div class="content-container">
+                    <canvas id="canvas" width="400" height="400"></canvas>
+                </div>
+                <div class="content-container" id="level-controls">
+                    <h2>Simulation Controls</h2>
+                    <div class="control-group">
+                        <div class="content-row">
+                            <button class="btn btn-primary" id="speedDown" type="submit"><<</button>
+                            <button class="btn btn-primary" id="pause-start" type="submit">Pause</button>
+                            <button class="btn btn-primary" id="speedUp" type="submit">>></button>
+                        </div>
+                        <button class="btn btn-primary" id="reset" type="submit">Reset</button>
+                    </div>
+                </div>
+            </div>
+            <div id="chart-container">
+                <canvas id="pidChart"></canvas>
+            </div>
+        </div>
+        <div id="controls">
+            <h2>Gains</h2>
+            <div class="control-group">
+                <label title="Proportional gain: affects how strongly the arm reacts to error">P
+                    <input type="number" id="kp" step="0.1" value="5">
+                </label>
+                <input type="range" id="kp-slider" min="0" max="100" step="0.1" value="5">
+            </div>
+
+            <div class="control-group">
+                <label title="Integral gain: accumulates past errors to eliminate steady-state offset">I
+                    <input type="number" id="ki" step="0.01" value="0">
+                </label>
+                <input type="range" id="ki-slider" min="0" max="1" step="0.01" value="0.0">
+            </div>
+
+            <div class="control-group">
+                <label title="Derivative gain: predicts future error to dampen oscillations">D
+                    <input type="number" id="kd" step="0.1" value="0">
+                </label>
+                <input type="range" id="kd-slider" min="0" max="10" step="0.1" value="0">
+            </div>
+
+            <div class="control-group">
+                <label title="Feed forward gain: applies an offset force proportional to the sin of the target angle">FF
+                    <input type="number" id="kff" step="0.01" value="0">
+                </label>
+                <input type="range" id="kff-slider" min="0" max="2" step="0.01" value="0">
+            </div>
+
+            <h2>Parameters</h2>
+
+            <div class="control-group">
+                <label title="Target angle of the arm in degrees">Target Angle (°)
+                    <input type="number" id="target" step="1" value="0">
+                </label>
+                <input type="range" id="target-slider" min="-180" max="180" step="1" value="0">
+            </div>
+
+            <div class="control-group">
+                <label title="Mass of the arm">Mass
+                    <input type="number" id="mass" step="0.1" value="1">
+                </label>
+                <input type="range" id="mass-slider" min="0.5" max="10" step="0.1" value="1">
+            </div>
+
+            <div class="control-group">
+                <label title="Drag adds a damping force to the arm. This is neither static NOR kinetic friction. Drag is proportional to velocity.">Drag
+                    <input type="number" id="drag" step="0.05" value="1">
+                </label>
+                <input type="range" id="drag-slider" min="0.0" max="5" step="0.05" value="1">
+            </div>
+
+            <div class="control-group">
+                <label title="Kinetic friction is a force acting against the motion of the arm. It is NOT proportional to velocity, it is constant. Non-zero kinetic friction also adds a small amount of static friction proportional to the mass in this simulation.">Kinetic
+                    Friction
+                    <input type="number" id="kinetic-friction" step="0.05" value="0.05">
+                </label>
+                <input type="range" id="kinetic-friction-slider" min="0.0" max="0.25" step="0.0005" value="0.05">
+            </div>
+
+            <div class="control-group">
+                <label title="Process noise models the error when measuring the angle of the arm">Process Noise
+                    <input type="number" id="process-noise" step="0.0005" value="0.0">
+                </label>
+                <input type="range" id="process-noise-slider" min="0.0" max="0.05" step="0.0005" value="0.0">
+            </div>
+
+            <div class="control-group">
+                <label title="Gravity enabled/disabled">Gravity
+                    <input type="checkbox" id="gravity" value="" checked>
+                </label>
+            </div>
+            <div class="control-group">
+                <label title="Deadtime is the delay between when the calculated controller output is applied to the mechanism. Enable to delay the output by 1 timestep, disable for instant control.">Controller
+                    Deadtime
+                    <input type="checkbox" id="deadtime" value="" checked>
+                </label>
+            </div>
         </div>
     </div>
- </div>
-
-
-<div id="chart-container">
-  <canvas id="pidChart"></canvas>
-</div>
-    </div>
-
-    <div id="controls">
-    <h2>Gains</h2>
-
-    <div class="control-group">
-      <label title="Proportional gain: affects how strongly the arm reacts to error">P
-        <input type="number" id="kp" step="0.1" value="5">
-      </label>
-      <input type="range" id="kp-slider" min="0" max="100" step="0.1" value="5">
-    </div>
-
-    <div class="control-group">
-      <label title="Integral gain: accumulates past errors to eliminate steady-state offset">I
-        <input type="number" id="ki" step="0.01" value="0">
-      </label>
-      <input type="range" id="ki-slider" min="0" max="1" step="0.01" value="0.0">
-    </div>
-
-    <div class="control-group">
-      <label title="Derivative gain: predicts future error to dampen oscillations">D
-        <input type="number" id="kd" step="0.1" value="0">
-      </label>
-      <input type="range" id="kd-slider" min="0" max="10" step="0.1" value="0">
-    </div>
-
-      <div class="control-group">
-      <label title="Feed forward gain: applies an offset force proportional to the sin of the target angle">FF
-        <input type="number" id="kff" step="0.01" value="0">
-      </label>
-      <input type="range" id="kff-slider" min="0" max="2" step="0.01" value="0">
-    </div>
-
-    <h2>Parameters</h2>
-
-    <div class="control-group">
-      <label title="Target angle of the arm in degrees">Target Angle (°)
-        <input type="number" id="target" step="1" value="0">
-      </label>
-      <input type="range" id="target-slider" min="-180" max="180" step="1" value="0">
-    </div>
-
-    <div class="control-group">
-      <label title="Mass of the arm">Mass
-        <input type="number" id="mass" step="0.1" value="1">
-      </label>
-      <input type="range" id="mass-slider" min="0.1" max="10" step="0.1" value="1">
-    </div>
-
-<!--    <div class="control-group">-->
-<!--      <label title="Length of the arm">Arm Length-->
-<!--        <input type="number" id="arm-length" step="1" value="75">-->
-<!--      </label>-->
-<!--      <input type="range" id="arm-length-slider" min="1" max="150" step="1" value="75">-->
-<!--    </div>-->
-
-    <div class="control-group">
-      <label title="Drag adds a damping force to the arm. This is neither static NOR kinetic friction. Drag is proportional to velocity.">Drag
-        <input type="number" id="drag" step="0.05" value="1">
-      </label>
-      <input type="range" id="drag-slider" min="0.0" max="5" step="0.05" value="1">
-    </div>
-
-    <div class="control-group">
-      <label title="Kinetic friction is a force acting against the motion of the arm. It is NOT proportional to velocity, it is constant.">Kinetic Friction
-        <input type="number" id="kinetic-friction" step="0.05" value="0.05">
-      </label>
-      <input type="range" id="kinetic-friction-slider" min="0.0" max="0.25" step="0.0005" value="0.05">
-    </div>
-
-    <div class="control-group">
-      <label title="Process noise models the error when measuring the angle of the arm">Process Noise
-        <input type="number" id="process-noise" step="0.0005" value="0.01">
-      </label>
-      <input type="range" id="process-noise-slider" min="0.0" max="0.05" step="0.0005" value="0.01">
-    </div>
-
-    <div class="control-group">
-      <label title="Gravity enabled/disabled">Gravity
-        <input type="checkbox" id="gravity" value="" checked>
-      </label>
-    </div>
-    <div class="control-group">
-      <label title="Deadtime is the delay between when the calculated controller output is applied to the mechanism. Enable to delay the output by 1 timestep, disable for instant control.">Controller Deadtime
-        <input type="checkbox" id="deadtime" value="" checked>
-      </label>
-    </div>
-  </div>
-        </div>
 </div>
 
 
@@ -359,349 +353,332 @@ button:hover {
 <script src="./js/chartjs-adapter-luxon@1"></script>
 <script>
 
-// JS code for PID, drag, physics (same as before)
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
 
-// Arm state
-let angle = 0;
-let angularVelocity = 0;
-let targetAngle = 0;
+    // Arm state
+    let angle = 0;
+    let angularVelocity = 0;
+    let targetAngle = 0;
 
-// PID state
-let integral = 0;
-let lastError = 0;
-let lastLastError = 0;
+    // PID state
+    let integral = 0;
+    let lastError = 0;
+    let lastLastError = 0;
 
-// Parameters
-let kp = 5, ki = 0.0, kd = 0, kff = 0.0;
-let mass = 1;
-let gravity = 9.8;
-let armLength = 75;
-let drag = 1.0;
-let kineticFriction = 0.05;
-let torque = 0;
+    // Parameters
+    let kp = 5, ki = 0.0, kd = 0, kff = 0.0;
+    let mass = 1;
+    let gravity = 9.8;
+    let armLength = 75;
+    let drag = 1.0;
+    let kineticFriction = 0.05;
+    let torque = 0;
 
-// Noise parameters
-let processNoise = 0.01;
-let deadtime = true;
+    // Noise parameters
+    let processNoise = 0.0;
+    let deadtime = true;
 
-let dt = 0.016;
-let lastDt = dt;
+    let dt = 0.016;
+    let lastDt = dt;
 
-// Utility to parse input safely
-function safeParse(val, fallback) {
-  const parsed = parseFloat(val);
-  return isFinite(parsed) ? parsed : fallback;
-}
+    // parse input safely
+    function safeParse(val, defaultVal) {
+        const parsed = parseFloat(val);
+        return isFinite(parsed) ? parsed : defaultVal;
+    }
 
-// Generate a gaussian sample
-// https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
-function gaussianSample(mean = 0, stdDev = 1) {
-  let u1 = Math.random();
-  let u2 = Math.random();
-  let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  return z0 * stdDev + mean;
-}
+    // Generate a gaussian sample
+    // https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
+    function gaussianSample(mean = 0, stdDev = 1) {
+        let u1 = Math.random();
+        let u2 = Math.random();
+        let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        return z0 * stdDev + mean;
+    }
 
-// Link number inputs and sliders
-function bindInputSlider(numberId, sliderId, callback) {
-  const numberInput = document.getElementById(numberId);
-  const slider = document.getElementById(sliderId);
-  numberInput.addEventListener("input", e => {
-    const val = safeParse(e.target.value, callback());
-    slider.value = val;
-    callback(val);
-  });
-  slider.addEventListener("input", e => {
-    const val = safeParse(e.target.value, callback());
-    numberInput.value = val;
-    callback(val);
-  });
-}
+    // Link number inputs and sliders
+    function bindInputSlider(numberId, sliderId, callback) {
+        const numberInput = document.getElementById(numberId);
+        const slider = document.getElementById(sliderId);
+        numberInput.addEventListener("input", e => {
+            const val = safeParse(e.target.value, callback());
+            slider.value = val;
+            callback(val);
+        });
+        slider.addEventListener("input", e => {
+            const val = safeParse(e.target.value, callback());
+            numberInput.value = val;
+            callback(val);
+        });
+    }
 
-function bindInputCheckbox(checkboxId, callback){
-    const checkboxInput = document.getElementById(checkboxId);
-    checkboxInput.addEventListener("change", e => {
-        const checked = checkboxInput.checked;
-        callback(checked);
+    function bindInputCheckbox(checkboxId, callback) {
+        const checkboxInput = document.getElementById(checkboxId);
+        checkboxInput.addEventListener("change", e => {
+            const checked = checkboxInput.checked;
+            callback(checked);
 
-    });
-}
-function bindButton(buttonId, callback){
-    const buttonInput = document.getElementById(buttonId);
-    buttonInput.addEventListener("click", e => {
-        console.log("button toggled");
-        const value = buttonInput.textContent;
-        callback(value);
+        });
+    }
+
+    function bindButton(buttonId, callback) {
+        const buttonInput = document.getElementById(buttonId);
+        buttonInput.addEventListener("click", e => {
+            console.log("button toggled");
+            const value = buttonInput.textContent;
+            callback(value);
+        })
+    }
+
+    // Bind all inputs
+    bindInputSlider("kp", "kp-slider", v => v !== undefined ? (kp = v) : kp);
+    bindInputSlider("ki", "ki-slider", v => v !== undefined ? (ki = v) : ki);
+    bindInputSlider("kd", "kd-slider", v => v !== undefined ? (kd = v) : kd);
+    bindInputSlider("kff", "kff-slider", v => v !== undefined ? (kff = v) : kff);
+    bindInputSlider("target", "target-slider", v => v !== undefined ? (targetAngle = v * Math.PI / 180) : targetAngle);
+    bindInputSlider("mass", "mass-slider", v => v !== undefined ? (mass = v) : mass);
+    bindInputSlider("drag", "drag-slider", v => v !== undefined ? (drag = v) : drag);
+    bindInputSlider("kinetic-friction", "kinetic-friction-slider", v => v !== undefined ? (kineticFriction = v) : kineticFriction);
+    bindInputSlider("process-noise", "process-noise-slider", v => v !== undefined ? (processNoise = v) : processNoise);
+    bindInputCheckbox("gravity", v => v ? (gravity = 9.8) : (gravity = 0))
+    bindInputCheckbox("deadtime", v => v ? (deadtime = true) : (deadtime = false))
+
+    bindButton("speedUp", () => {
+        dt < 0.016 ? dt *= 2 : dt = 0.016;
     })
-}
+    bindButton("speedDown", () => {
+        dt !== 0.001 ? dt /= 2.0 : dt = 0.001;
+    })
 
-// Bind all inputs
-bindInputSlider("kp", "kp-slider", v => v!==undefined? (kp=v) : kp);
-bindInputSlider("ki", "ki-slider", v => v!==undefined? (ki=v) : ki);
-bindInputSlider("kd", "kd-slider", v => v!==undefined? (kd=v) : kd);
-bindInputSlider("kff", "kff-slider", v => v!==undefined? (kff=v) : kff);
-bindInputSlider("target", "target-slider", v => v!==undefined? (targetAngle=v*Math.PI/180) : targetAngle);
-bindInputSlider("mass", "mass-slider", v => v!==undefined? (mass=v) : mass);
-// bindInputSlider("arm-length", "arm-length-slider", v => v!==undefined? (armLength=v) : armLength);
-bindInputSlider("drag", "drag-slider", v => v!==undefined? (drag=v) : drag);
-bindInputSlider("kinetic-friction", "kinetic-friction-slider", v => v!==undefined? (kineticFriction=v) : kineticFriction);
-bindInputSlider("process-noise", "process-noise-slider", v => v!==undefined? (processNoise=v) : processNoise);
-bindInputCheckbox("gravity", v => v ? (gravity=9.8) : (gravity=0))
-bindInputCheckbox("deadtime", v => v ? (deadtime=true) : (deadtime=false))
-bindButton("speedUp", () => {dt < 0.256 ? dt *= 2 : dt=0.256;})
-bindButton("speedDown", () => {dt !== 0.001 ? dt /= 2.0 : dt=0.001;})
-
-const pauseStartButton = document.getElementById("pause-start");
-pauseStartButton.addEventListener("click", e => {
-    if (pauseStartButton.textContent === "Pause"){
-        pauseStartButton.textContent = "Start";
-        lastDt = dt;
+    const pauseStartButton = document.getElementById("pause-start");
+    pauseStartButton.addEventListener("click", e => {
+        if (pauseStartButton.textContent === "Pause") {
+            pauseStartButton.textContent = "Start";
+            lastDt = dt;
+            dt = 0;
+        } else {
+            pauseStartButton.textContent = "Pause";
+            dt = lastDt;
+        }
+    });
+    const resetButton = document.getElementById("reset");
+    resetButton.addEventListener("click", e => {
+        angle = 0;
+        angularVelocity = 0;
+        targetAngle = 0;
+        integral = 0;
         dt = 0;
-    } else{
-        pauseStartButton.textContent = "Pause";
-        dt = lastDt;
+        lastDt = 0.016;
+
+        const target = document.getElementById("target");
+        target.value = 0;
+        const target_slider = document.getElementById("target-slider");
+        target_slider.value = 0;
+        pauseStartButton.textContent = "Start";
+    });
+
+    // Drag interaction (janky torque input)
+    let dragging = false;
+    const pivot = {x: canvas.width / 2, y: canvas.height * 0.6};
+    canvas.addEventListener("mousedown", e => {
+        dragging = true;
+    });
+    window.addEventListener("mouseup", () => dragging = false);
+    window.addEventListener("mousemove", e => {
+        if (dragging) {
+            // Vector from pivot to mouse
+            const mx = e.offsetX - pivot.x;
+            const my = e.offsetY - pivot.y;
+
+            // Arm direction (unit vector)
+            const armDir = {x: Math.sin(angle), y: -Math.cos(angle)};
+            // Perpendicular to arm (torque direction)
+            const armPerp = {x: -armDir.y, y: armDir.x};
+
+            // Project mouse vector onto perpendicular
+            const forceMag = (mx * armPerp.x + my * armPerp.y) * 0.0025;
+            angularVelocity += forceMag;
+        }
+    });
+
+    // Load images
+    const armImage = new Image();
+    armImage.src = './pid_sim_images/arm.png';
+    armImage.onload = () => {
+        console.log("Arm image loaded");
+    };
+    const robotBaseImage = new Image();
+    robotBaseImage.src = './pid_sim_images/robot_base.png';
+    robotBaseImage.onload = () => {
+        console.log("Robot base image loaded");
+    };
+    let chartAccumulator = 0;
+    const chartInterval = dt;
+
+    function update() {
+        // Main PID and physics calculations
+        // If deadtime enabled, error is always one time step behind
+        let error = deadtime ? lastError : targetAngle - angle;
+        // Add process noises, if enabled
+        if (processNoise > 0 && dt > 0) {
+            error += gaussianSample(0, processNoise);
+        }
+
+        ki > 0 ? integral += error * dt : integral = 0;
+        const derivative = dt > 0 ? (error - lastLastError) / dt : 0; // always use an updated lastLastError for derivative calculation, which gets applied correctly when deadtime is enabled.
+        const control = kp * error + ki * integral + kd * derivative + -kff * Math.sin(targetAngle);
+        lastError = deadtime ? targetAngle - angle : error;
+        lastLastError = error;
+
+        // Magic numbers to scale everything appropriately
+        const inertia = mass * armLength * armLength * 0.00005;
+        const torqueGravity = mass * gravity * armLength * Math.sin(angle) * 0.001;
+        torque = control + torqueGravity;
+
+        // Limit max torque
+        torque = torque > 1.0e3 ? 1.0e3 : torque;
+        torque = torque < -1.0e3 ? -1.0e3 : torque;
+
+        if (angularVelocity > 0) {
+            torque -= kineticFriction;
+        } else if (angularVelocity < 0) {
+            torque += kineticFriction;
+        }
+        torque += (-drag * angularVelocity);
+
+        let angularAcc = torque / inertia;
+        angularVelocity += angularAcc * dt;
+        // This is static friction. Don't freeze motion if we have large control force
+        const staticFrictionMagicNumber = 0.01 / mass;
+        if (Math.abs(kineticFriction) > 0 && Math.abs(angularVelocity) < staticFrictionMagicNumber && Math.abs(angularAcc) * dt < staticFrictionMagicNumber) {
+            angularVelocity = 0;
+        }
+        angle += angularVelocity * dt;
+
+        draw();
+        chartAccumulator += dt;
+        if (chartAccumulator >= chartInterval) {
+            updateChart();  // add new data to plot
+            chartAccumulator = 0;
+        }
+        requestAnimationFrame(update);
     }
-});
-const resetButton = document.getElementById("reset");
-resetButton.addEventListener("click", e => {
-    angle=0;
-    angularVelocity=0;
-    targetAngle=0;
-    integral=0;
-    dt = 0;
-    lastDt = 0.016;
 
-    const target = document.getElementById("target");
-    target.value=0;
-    const target_slider = document.getElementById("target-slider");
-    target_slider.value=0;
-    pauseStartButton.textContent = "Start";
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cx = canvas.width / 2, cy = canvas.height * 0.6;
 
-});
+        // Ground plane
+        ctx.strokeStyle = "#444";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, cy + 60);
+        ctx.lineTo(canvas.width, cy + 60);
+        ctx.stroke();
 
-// Drag interaction (natural torque)
-let dragging = false;
-const pivot = {x: canvas.width/2, y: canvas.height*0.6};
-canvas.addEventListener("mousedown", e => { dragging=true; });
-window.addEventListener("mouseup", ()=>dragging=false);
-window.addEventListener("mousemove", e=>{
-  if(dragging){
-    // Vector from pivot to mouse
-    const mx = e.offsetX - pivot.x;
-    const my = e.offsetY - pivot.y;
+        // Draw arm image
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
 
-    // Arm direction (unit vector)
-    const armDir = {x: Math.sin(angle), y: -Math.cos(angle)};
-    // Perpendicular to arm (torque direction)
-    const armPerp = {x: -armDir.y, y: armDir.x};
+        // Draw image centered on base
+        ctx.drawImage(
+            armImage,
+            -armImage.width / 2, // shift x to center horizontally
+            -armImage.height + 10, // shift y so pivot is at bottom of image
+        );
+        ctx.restore();
 
-    // Project mouse vector onto perpendicular
-    const forceMag = (mx*armPerp.x + my*armPerp.y) * 0.0025;
-    angularVelocity += forceMag;
-  }
-});
+        // Draw robot base image
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.drawImage(
+            robotBaseImage,
+            -robotBaseImage.width / 2,
+            -robotBaseImage.height / 2 + 20
+        );
+        ctx.restore();
 
-// Load image assets
+        // Setpoint line
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(targetAngle);
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -armLength - 60);
+        ctx.stroke();
+        ctx.restore();
 
-const armImage = new Image();
-armImage.src = './pid_sim_images/arm.png';
-armImage.onload = () => {
-    console.log("Arm image loaded");
-};
-
-const robotBaseImage = new Image();
-robotBaseImage.src = './pid_sim_images/robot_base.png';
-robotBaseImage.onload = () => {
-    console.log("Robot base image loaded");
-};
-
-let chartAccumulator = 0;   // accumulates delta time
-const chartInterval = dt/2.0;
-
-function update(){
-  // PID
-  // If deadtime enabled, error is one time step behind
-  let error = deadtime ? lastError : targetAngle - angle;
-  // Add process noises, if enabled
-  if (processNoise > 0 && dt > 0){
-    error += gaussianSample(0, processNoise);
-  }
-
-  ki > 0 ? integral += error*dt: integral = 0;
-  const derivative = dt > 0 ? (error-lastLastError)/dt : 0; // always use an updated lastLastError for derivative calculation, which gets applied correctly when deadtime is enabled.
-  const control = kp*error + ki*integral + kd*derivative + -kff*Math.sin(targetAngle);
-  lastError = deadtime ? targetAngle - angle : error;
-  lastLastError = error;
-
-  const inertia = mass*armLength*armLength*0.00005;
-  const torqueGravity = mass*gravity*armLength*Math.sin(angle)*0.001;
-  torque = control + torqueGravity;
-
-  // Limit max torque
-  torque = torque > 1.0e3 ? 1.0e3 : torque;
-  torque = torque < -1.0e3 ? -1.0e3: torque;
-
-  if (angularVelocity > 0){
-      torque -= kineticFriction;
-  } else if (angularVelocity < 0){
-      torque += kineticFriction;
-  }
-  torque += (-drag * angularVelocity);
-
-  let angularAcc = torque/inertia;
-  angularVelocity += angularAcc*dt;
-  // This is static friction. Don't freeze motion if we have large control force
-  const staticFrictionMagicNumber = 0.01 / mass;
-  if (Math.abs(kineticFriction) > 0 && Math.abs(angularVelocity) < staticFrictionMagicNumber && Math.abs(angularAcc)*dt < staticFrictionMagicNumber){
-      angularVelocity = 0;
-  }
-  angle += angularVelocity*dt;
-
-  draw();
-  // --- update chart at 10 Hz ---
-  chartAccumulator += dt;
-  if(chartAccumulator >= chartInterval) {
-      updateChart();  // push new data to Chart.js
-      chartAccumulator = 0;
-  }  requestAnimationFrame(update);
-}
-
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const cx = canvas.width/2, cy=canvas.height*0.6;
-
-
-  // Ground plane
-  ctx.strokeStyle = "#444";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(0, cy+60);
-  ctx.lineTo(canvas.width, cy+60);
-  ctx.stroke();
-
-
-  // // Arm
-  // ctx.save();
-  // ctx.translate(cx,cy);
-  // ctx.rotate(angle);
-  // ctx.strokeStyle="#00d4ff";
-  // ctx.lineWidth=8;
-  // ctx.beginPath();
-  // ctx.moveTo(0,0);
-  // ctx.lineTo(0,-armLength);
-  // ctx.stroke();
-  //
-  // // Bucket
-  // ctx.fillStyle="orange";
-  // const radius = 20;
-  // ctx.beginPath();
-  // ctx.arc(0,-armLength-20,radius,0,Math.PI*2);
-  // ctx.fill();
-  // ctx.restore();
-
-  // Draw arm image
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(angle);
-
-  // Draw image centered on base
-  ctx.drawImage(
-    armImage,
-    -armImage.width/2, // shift x to center horizontally
-    -armImage.height + 10, // shift y so pivot is at bottom of image
-  );
-  ctx.restore();
-
-  // Draw robot base image
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.drawImage(
-      robotBaseImage,
-      -robotBaseImage.width/2,
-      -robotBaseImage.height/2 + 20
-  );
-  ctx.restore();
-
-  // Target
-  ctx.save();
-  ctx.translate(cx,cy);
-  ctx.rotate(targetAngle);
-  ctx.strokeStyle="red";
-  ctx.lineWidth=2;
-  ctx.beginPath();
-  ctx.moveTo(0,0);
-  ctx.lineTo(0,-armLength-60);
-  ctx.stroke();
-  ctx.restore();
-
-  // Info
-  ctx.fillStyle="#959393";
-  ctx.font="14px monospace";
-  ctx.fillText("Simulation Speed: "+(dt/0.016).toFixed(2)+"x",10,20);
-  ctx.fillText("Angle: "+(angle*180/Math.PI).toFixed(1)+"°",10,40);
-  ctx.fillText("Angular Velocity: "+angularVelocity.toFixed(2),10,60);
-  ctx.fillText("Torque: "+torque.toFixed(2),10,80);
-  ctx.fillText("Click & drag arm to induce a disturbance",10,390);
-}
-
-  const ctxChart = document.getElementById('pidChart').getContext('2d');
-
-  const pidChart = new Chart(ctxChart, {
-    type: 'line',
-    data: {
-      labels: [], // time
-      datasets: [
-        { label: 'Angle', data: [], borderColor: '#00d4ff', fill: false},
-        { label: 'Target Angle', data: [], borderColor: '#ff5555', fill: false},
-        { label: 'Error', data: [], borderColor: '#16b300', fill: false},
-        { label: 'Angular Velocity', data: [], borderColor: '#ffaa00', fill: false, hidden: true },
-        { label: 'Integral', data: [], borderColor: '#ff8800', fill: false, hidden: true },
-      ]
-    },
-    options: {
-      responsive: true,
-      animation: false,
-      plugins: {
-        legend: { labels: { color: '#ccc' } }
-      },
-      scales: {
-        x: { type: 'linear', ticks: { color: '#ccc', callback: function(value) {return value.toFixed(2);} }, title: { display: true, text: 'Time (s)', color:'#ccc' } },
-        y: { ticks: { color: '#ccc' }, title: { display: true, text: 'Values', color:'#ccc' } }
-      }
+        // Info
+        ctx.fillStyle = "#959393";
+        ctx.font = "14px monospace";
+        ctx.fillText("Simulation Speed: " + (dt / 0.016).toFixed(2) + "x", 10, 20);
+        ctx.fillText("Angle: " + (angle * 180 / Math.PI).toFixed(1) + "°", 10, 40);
+        ctx.fillText("Angular Velocity: " + angularVelocity.toFixed(2), 10, 60);
+        ctx.fillText("Torque: " + torque.toFixed(2), 10, 80);
+        ctx.fillText("Click & drag arm to induce a disturbance", 10, 390);
     }
-  });
 
-  let time = 0;
-  function updateChart() {
-    time += chartAccumulator;
-    pidChart.data.labels.push(time);
-    pidChart.data.datasets[0].data.push(angle * 180/Math.PI);
-    pidChart.data.datasets[1].data.push(targetAngle * 180/Math.PI);
-    pidChart.data.datasets[2].data.push(lastError * 180/Math.PI);
-    pidChart.data.datasets[3].data.push(angularVelocity);
-    pidChart.data.datasets[4].data.push(integral);
+    const ctxChart = document.getElementById('pidChart').getContext('2d');
 
-    // // Limit number of points
-    // if(pidChart.data.labels.length > 200) {
-    //   pidChart.data.labels.shift();
-    //   pidChart.data.datasets.forEach(ds => ds.data.shift());
-    // }
+    const pidChart = new Chart(ctxChart, {
+        type: 'line',
+        data: {
+            labels: [], // time
+            datasets: [
+                {label: 'Angle', data: [], borderColor: '#00d4ff', fill: false},
+                {label: 'Target Angle', data: [], borderColor: '#ff5555', fill: false},
+                {label: 'Error', data: [], borderColor: '#16b300', fill: false, hidden: true},
+                {label: 'Angular Velocity', data: [], borderColor: '#ffaa00', fill: false, hidden: true},
+                {label: 'Integral', data: [], borderColor: '#ff8800', fill: false, hidden: true},
+            ]
+        },
+        options: {
+            responsive: true,
+            animation: false,
+            plugins: {
+                legend: {labels: {color: '#ccc'}}
+            },
+            scales: {
+                x: {
+                    type: 'linear', ticks: {
+                        color: '#ccc', callback: function (value) {
+                            return value.toFixed(2);
+                        }
+                    }, title: {display: true, text: 'Time (s)', color: '#ccc'}
+                },
+                y: {ticks: {color: '#ccc'}, title: {display: true, text: 'Values', color: '#ccc'}}
+            }
+        }
+    });
 
-    while (pidChart.data.labels.length > 0 &&
-         parseFloat(pidChart.data.labels[0]) < time - 10) {
-    pidChart.data.labels.shift();
-    pidChart.data.datasets.forEach(ds => ds.data.shift());
-  }
+    let time = 0;
 
-  pidChart.options.scales.x.min = (time - 10);
-  pidChart.options.scales.x.max = time;
+    function updateChart() {
+        time += chartAccumulator;
+        pidChart.data.labels.push(time);
+        pidChart.data.datasets[0].data.push(angle * 180 / Math.PI);
+        pidChart.data.datasets[1].data.push(targetAngle * 180 / Math.PI);
+        pidChart.data.datasets[2].data.push(lastError * 180 / Math.PI);
+        pidChart.data.datasets[3].data.push(angularVelocity);
+        pidChart.data.datasets[4].data.push(integral);
 
-    pidChart.update('none');
-  }
+        while (pidChart.data.labels.length > 0 &&
+        parseFloat(pidChart.data.labels[0]) < time - 10) {
+            pidChart.data.labels.shift();
+            pidChart.data.datasets.forEach(ds => ds.data.shift());
+        }
 
-update();
+        pidChart.options.scales.x.min = (time - 10);
+        pidChart.options.scales.x.max = time;
+
+        pidChart.update('none');
+    }
+
+    update();
 </script>
 </body>
 </html>
