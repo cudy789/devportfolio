@@ -73,6 +73,7 @@
             display: block;
             border-radius: 8px;
             width: 400px;
+            touch-action: none;
         }
 
         #controls {
@@ -103,6 +104,11 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
+        }
+
+        #perturb-control-group {
+            align-self: center;
+            width: 90%;
         }
 
         label {
@@ -217,6 +223,10 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
 
+        #perturb-button {
+            align-self: center;
+        }
+
         button:hover {
             background: #2b2b2b;
             border-color: #555;
@@ -247,6 +257,14 @@
             <div class="content-row">
                 <div class="content-container">
                     <canvas id="canvas" width="400" height="400"></canvas>
+                    <div class="control-group" id="perturb-control-group">
+                        <label title="The amount of torque applied to push the arm.">Disturbance size
+                            <input type="number" id="perturb" step="5" value="10">
+                        </label>
+                        <input type="range" id="perturb-slider" min="-100" max="100" step="5" value="10">
+                        <button id="perturb-button">Perturb</button>
+
+                    </div>
                 </div>
                 <div class="content-container" id="level-controls">
                     <h2>Simulation Controls</h2>
@@ -379,7 +397,15 @@
     let processNoise = 0.0;
     let deadtime = true;
 
+    // Disturbance magnitude
+    let disturbanceMag = 10;
+    let applyDisturbance = false;
+
+    // Sim & render speed vars
     let dt = 0.016;
+    const nominalDt = 0.016;
+    let renderSpeed = 0.016;
+    let accumTime = 0;
     let lastDt = dt;
 
     // parse input safely
@@ -441,25 +467,30 @@
     bindInputSlider("drag", "drag-slider", v => v !== undefined ? (drag = v) : drag);
     bindInputSlider("kinetic-friction", "kinetic-friction-slider", v => v !== undefined ? (kineticFriction = v) : kineticFriction);
     bindInputSlider("process-noise", "process-noise-slider", v => v !== undefined ? (processNoise = v) : processNoise);
+    bindInputSlider("perturb", "perturb-slider", v => v !== undefined ? (disturbanceMag = v) : disturbanceMag);
     bindInputCheckbox("gravity", v => v ? (gravity = 9.8) : (gravity = 0))
     bindInputCheckbox("deadtime", v => v ? (deadtime = true) : (deadtime = false))
 
     bindButton("speedUp", () => {
-        dt < 0.016 ? dt *= 2 : dt = 0.016;
+        renderSpeed < 0.064 ? renderSpeed *= 2 : renderSpeed = 0.064;
     })
     bindButton("speedDown", () => {
-        dt !== 0.001 ? dt /= 2.0 : dt = 0.001;
+        renderSpeed !== 0.001 ? renderSpeed /= 2.0 : renderSpeed = 0.001;
     })
+
+    bindButton("perturb-button", () => {
+        applyDisturbance = true;
+    });
 
     const pauseStartButton = document.getElementById("pause-start");
     pauseStartButton.addEventListener("click", e => {
         if (pauseStartButton.textContent === "Pause") {
-            pauseStartButton.textContent = "Start";
-            lastDt = dt;
-            dt = 0;
+            pauseStartButton.textContent = "Play";
+            lastDt = renderSpeed;
+            renderSpeed = 0;
         } else {
             pauseStartButton.textContent = "Pause";
-            dt = lastDt;
+            renderSpeed = lastDt;
         }
     });
     const resetButton = document.getElementById("reset");
@@ -468,38 +499,64 @@
         angularVelocity = 0;
         targetAngle = 0;
         integral = 0;
-        dt = 0;
-        lastDt = 0.016;
+        lastDt = nominalDt;
 
         const target = document.getElementById("target");
         target.value = 0;
         const target_slider = document.getElementById("target-slider");
         target_slider.value = 0;
-        pauseStartButton.textContent = "Start";
+
+        renderSpeed = nominalDt;
+        pauseStartButton.textContent = "Pause";
+
     });
 
     // Drag interaction (janky torque input)
+    // Drag interaction (mouse + touch via Pointer Events)
     let dragging = false;
     const pivot = {x: canvas.width / 2, y: canvas.height * 0.6};
-    canvas.addEventListener("mousedown", e => {
+
+    function getCanvasCoords(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top
+        };
+    }
+
+    canvas.addEventListener("pointerdown", e => {
         dragging = true;
+        canvas.setPointerCapture(e.pointerId);
     });
-    window.addEventListener("mouseup", () => dragging = false);
-    window.addEventListener("mousemove", e => {
-        if (dragging) {
-            // Vector from pivot to mouse
-            const mx = e.offsetX - pivot.x;
-            const my = e.offsetY - pivot.y;
 
-            // Arm direction (unit vector)
-            const armDir = {x: Math.sin(angle), y: -Math.cos(angle)};
-            // Perpendicular to arm (torque direction)
-            const armPerp = {x: -armDir.y, y: armDir.x};
+    canvas.addEventListener("pointerup", e => {
+        dragging = false;
+        canvas.releasePointerCapture(e.pointerId);
+    });
 
-            // Project mouse vector onto perpendicular
-            const forceMag = (mx * armPerp.x + my * armPerp.y) * 0.0025;
-            angularVelocity += forceMag;
-        }
+    canvas.addEventListener("pointercancel", () => {
+        dragging = false;
+    });
+
+    canvas.addEventListener("pointermove", e => {
+        if (!dragging) return;
+
+        const {x, y} = getCanvasCoords(e);
+
+        // Vector from pivot to pointer
+        const mx = x - pivot.x;
+        const my = y - pivot.y;
+
+        // Arm direction (unit vector)
+        const armDir = {x: Math.sin(angle), y: -Math.cos(angle)};
+
+        // Perpendicular to arm (torque direction)
+        const armPerp = {x: -armDir.y, y: armDir.x};
+
+        // Project pointer vector onto perpendicular
+        const forceMag = (mx * armPerp.x + my * armPerp.y) * 0.0025;
+
+        angularVelocity += forceMag;
     });
 
     // Load images
@@ -514,54 +571,64 @@
         console.log("Robot base image loaded");
     };
     let chartAccumulator = 0;
-    const chartInterval = dt;
+    const chartInterval = renderSpeed;
 
     function update() {
-        // Main PID and physics calculations
-        // If deadtime enabled, error is always one time step behind
-        let error = deadtime ? lastError : targetAngle - angle;
-        // Add process noises, if enabled
-        if (processNoise > 0 && dt > 0) {
-            error += gaussianSample(0, processNoise);
+        accumTime += renderSpeed;
+        while (accumTime >= nominalDt) {
+            // Main PID and physics calculations
+            // If deadtime enabled, error is always one time step behind
+            let error = deadtime ? lastError : targetAngle - angle;
+            // Add process noises, if enabled
+            if (processNoise > 0 && dt > 0) {
+                error += gaussianSample(0, processNoise);
+            }
+
+            ki > 0 ? integral += error * dt : integral = 0;
+            const derivative = dt > 0 ? (error - lastLastError) / dt : 0; // always use an updated lastLastError for derivative calculation, which gets applied correctly when deadtime is enabled.
+            const control = kp * error + ki * integral + kd * derivative + -kff * Math.sin(targetAngle);
+            lastError = deadtime ? targetAngle - angle : error;
+            lastLastError = error;
+
+            // Magic numbers to scale everything appropriately
+            const inertia = mass * armLength * armLength * 0.00005;
+            const torqueGravity = mass * gravity * armLength * Math.sin(angle) * 0.001;
+            torque = control + torqueGravity;
+            if (applyDisturbance) {
+                torque += disturbanceMag;
+                applyDisturbance = false;
+            }
+
+            // Limit max torque
+            torque = torque > 1.0e3 ? 1.0e3 : torque;
+            torque = torque < -1.0e3 ? -1.0e3 : torque;
+
+            if (angularVelocity > 0) {
+                torque -= kineticFriction;
+            } else if (angularVelocity < 0) {
+                torque += kineticFriction;
+            }
+            torque += (-drag * angularVelocity);
+
+            let angularAcc = torque / inertia;
+            angularVelocity += angularAcc * dt;
+            // This is static friction. Don't freeze motion if we have large control force
+            const staticFrictionMagicNumber = 0.01 / mass;
+            if (Math.abs(kineticFriction) > 0 && Math.abs(angularVelocity) < staticFrictionMagicNumber && Math.abs(angularAcc) * dt < staticFrictionMagicNumber) {
+                angularVelocity = 0;
+            }
+            angle += angularVelocity * dt;
+            chartAccumulator += dt;
+            accumTime -= dt;
+            draw();
         }
 
-        ki > 0 ? integral += error * dt : integral = 0;
-        const derivative = dt > 0 ? (error - lastLastError) / dt : 0; // always use an updated lastLastError for derivative calculation, which gets applied correctly when deadtime is enabled.
-        const control = kp * error + ki * integral + kd * derivative + -kff * Math.sin(targetAngle);
-        lastError = deadtime ? targetAngle - angle : error;
-        lastLastError = error;
 
-        // Magic numbers to scale everything appropriately
-        const inertia = mass * armLength * armLength * 0.00005;
-        const torqueGravity = mass * gravity * armLength * Math.sin(angle) * 0.001;
-        torque = control + torqueGravity;
-
-        // Limit max torque
-        torque = torque > 1.0e3 ? 1.0e3 : torque;
-        torque = torque < -1.0e3 ? -1.0e3 : torque;
-
-        if (angularVelocity > 0) {
-            torque -= kineticFriction;
-        } else if (angularVelocity < 0) {
-            torque += kineticFriction;
-        }
-        torque += (-drag * angularVelocity);
-
-        let angularAcc = torque / inertia;
-        angularVelocity += angularAcc * dt;
-        // This is static friction. Don't freeze motion if we have large control force
-        const staticFrictionMagicNumber = 0.01 / mass;
-        if (Math.abs(kineticFriction) > 0 && Math.abs(angularVelocity) < staticFrictionMagicNumber && Math.abs(angularAcc) * dt < staticFrictionMagicNumber) {
-            angularVelocity = 0;
-        }
-        angle += angularVelocity * dt;
-
-        draw();
-        chartAccumulator += dt;
         if (chartAccumulator >= chartInterval) {
             updateChart();  // add new data to plot
             chartAccumulator = 0;
         }
+
         requestAnimationFrame(update);
     }
 
@@ -615,11 +682,11 @@
         // Info
         ctx.fillStyle = "#959393";
         ctx.font = "14px monospace";
-        ctx.fillText("Simulation Speed: " + (dt / 0.016).toFixed(2) + "x", 10, 20);
+        ctx.fillText("Simulation Speed: " + (renderSpeed / 0.016).toFixed(2) + "x", 10, 20);
         ctx.fillText("Angle: " + (angle * 180 / Math.PI).toFixed(1) + "°", 10, 40);
         ctx.fillText("Angular Velocity: " + angularVelocity.toFixed(2), 10, 60);
         ctx.fillText("Torque: " + torque.toFixed(2), 10, 80);
-        ctx.fillText("Click & drag arm to induce a disturbance", 10, 390);
+        ctx.fillText("Click & drag arm, or click 'Perturb'", 10, 390);
     }
 
     const ctxChart = document.getElementById('pidChart').getContext('2d');
