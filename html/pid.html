@@ -4,9 +4,20 @@
     <meta charset="UTF-8"/>
     <title>PID Position Controller Simulation</title>
     <style>
+        :root {
+            --bg: #121212;
+            --panel: #1e1e1e;
+            --text: #959393;
+            --muted: #7e7e7e;
+            --accent: #d53737;
+            --accent2: #00d4ff;
+            --danger: #ff5555;
+            --border: #555;
+        }
+
         body {
-            background: #121212;
-            color: #959393;
+            background: var(--bg);
+            color: var(--text);
             font-family: "Segoe UI", Roboto, sans-serif;
             display: flex;
             flex-direction: column;
@@ -17,7 +28,7 @@
 
         h1 {
             margin: 20px 0 20px 0;
-            color: #d53737;
+            color: var(--accent);
         }
 
         .main-content-row {
@@ -49,7 +60,8 @@
             align-items: flex-start;
             max-width: 1000px;
 
-            background: #1e1e1e;
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: 12px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
             padding: 20px;
@@ -61,7 +73,8 @@
             gap: 20px;
             width: 95%;
 
-            background: #1e1e1e;
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: 12px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
             padding: 10px;
@@ -77,7 +90,8 @@
         }
 
         #controls {
-            background: #1e1e1e;
+            background: var(--panel);
+            border: 1px solid var(--border);
             padding: 15px;
             border-radius: 12px;
             display: flex;
@@ -96,7 +110,7 @@
 
         h2 {
             margin: 0;
-            color: #d53737;
+            color: var(--accent);
             text-align: center;
         }
 
@@ -116,7 +130,7 @@
             justify-content: space-between;
             align-items: center;
             font-size: 14px;
-            color: #959393;
+            color: var(--text);
             cursor: help;
         }
 
@@ -136,10 +150,10 @@
             width: 60px;
             text-align: center;
             padding: 4px;
-            border: 1px solid #555;
+            border: 1px solid var(--border);
             border-radius: 4px;
             background: #222;
-            color: #959393;
+            color: var(--text);
         }
 
         /* For Webkit browsers (Chrome, Edge, Safari) */
@@ -156,7 +170,7 @@
             width: 16px;
             height: 16px;
             border-radius: 50%;
-            background: #00d4ff;
+            background: var(--accent2);
             cursor: pointer;
             border: 2px solid #222;
             margin-top: -5px; /* align thumb with track */
@@ -170,7 +184,7 @@
         }
 
         input[type="range"]::-moz-range-thumb {
-            background: #00d4ff;
+            background: var(--accent2);
             width: 16px;
             height: 16px;
             border-radius: 50%;
@@ -197,7 +211,7 @@
         }
 
         input[type="range"]::-ms-thumb {
-            background: #00d4ff;
+            background: var(--accent2);
             width: 16px;
             height: 16px;
             border-radius: 50%;
@@ -210,9 +224,9 @@
         }
 
         button {
-            background: #1e1e1e;
+            background: var(--panel);
             color: #e0e0e0;
-            border: 1px solid #333;
+            border: 1px solid var(--border);
             border-radius: 8px;
             padding: 10px 18px;
             margin: 6px;
@@ -229,24 +243,38 @@
 
         button:hover {
             background: #2b2b2b;
-            border-color: #555;
+            border-color: var(--border);
             color: #ffffff;
-            box-shadow: 0 0 6px #00d4ff;
+            box-shadow: 0 0 6px var(--accent2);
         }
 
         #chart-container {
-            background: #1e1e1e;
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: 12px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
             min-width: 750px;
             width: 100%;
             margin: 10px;
         }
+        .top-links {
+            align-self: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .top-links a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .top-links a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
 
-
+<div class="top-links"><a href="./tools.html">Back to Simulations &amp; Analysis Toolbox</a></div>
 <div id="main-container">
     <div class="main-content-row">
 

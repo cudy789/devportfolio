@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polynomial Fit Tool</title>
+    <style>
+        :root {
+            --bg: #121212;
+            --panel: #1e1e1e;
+            --text: #959393;
+            --muted: #7e7e7e;
+            --accent: #d53737;
+            --accent2: #00d4ff;
+            --danger: #ff5555;
+            --border: #555;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Roboto, sans-serif;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(320px, 430px) 1fr;
+            gap: 18px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            padding: 16px;
+            min-width: 0;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        h1, h2 {
+            margin: 0 0 10px;
+            color: var(--accent);
+        }
+
+        .hint {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        textarea,
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            background: #222;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 260px;
+            resize: vertical;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            line-height: 1.35;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--accent2);
+            transform: translateY(1px);
+        }
+
+        .status {
+            min-height: 22px;
+            margin: 2px 0 10px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .status.error {
+            color: var(--danger);
+        }
+
+        .equation {
+            margin-top: 8px;
+            background: #222;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 44px;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            overflow: auto;
+        }
+
+        pre {
+            margin: 8px 0 0;
+            background: #222;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 42px;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #dataInput {
+            margin-top: 8px;
+            flex: 1;
+            min-height: 640px;
+        }
+
+        #snippetToggleRow {
+            margin-top: 10px;
+        }
+
+        #chartWrap {
+            height: 560px;
+        }
+
+        #resultsPanel {
+            margin-top: 2px;
+            min-width: 0;
+        }
+
+        #degreeInput,
+        #languageSelect {
+            width: 170px;
+            max-width: 100%;
+        }
+
+        #resultsPanel .control-row label {
+            margin-top: 0;
+        }
+
+        #axisControls {
+            margin-top: 2px;
+        }
+
+        #axisControls:not(.hidden) {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .axis-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .axis-row label {
+            min-width: 46px;
+            margin-top: 0;
+        }
+
+        .axis-row input[type="number"] {
+            width: 140px;
+            max-width: 100%;
+        }
+
+        .top-links {
+            margin-bottom: 14px;
+        }
+
+        .top-links a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .top-links a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 980px) {
+            .page {
+                grid-template-columns: 1fr;
+            }
+            #chartWrap {
+                height: 420px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="top-links"><a href="./tools.html">Back to Simulations &amp; Analysis Toolbox</a></div>
+<div class="page">
+    <section class="panel left-panel">
+        <h1>Polynomial Fit Tool</h1>
+        <p class="hint">
+            Paste two-column data from Google Sheets. Supported separators: tab, comma, or spaces.
+            Each non-empty row should contain at least <code>x</code> and <code>y</code>.
+        </p>
+
+        <label for="dataInput">Data (x y)</label>
+        <textarea id="dataInput" spellcheck="false">0	1
+1	2.2
+2	5.1
+3	10.2
+4	17.1
+5	25.8</textarea>
+    </section>
+
+    <section class="panel right-panel">
+        <h2>Data and Fit</h2>
+        <div id="chartWrap">
+            <canvas id="fitChart"></canvas>
+        </div>
+        <div id="axisToggleRow" class="control-row">
+            <input id="autoscaleToggle" type="checkbox" checked>
+            <label for="autoscaleToggle">Auto scale plot</label>
+        </div>
+        <div id="axisControls" class="hidden">
+            <div class="axis-row">
+                <label for="xMinInput">x min</label>
+                <input id="xMinInput" type="number" step="any" value="0">
+                <label for="xMaxInput">x max</label>
+                <input id="xMaxInput" type="number" step="any" value="10">
+            </div>
+            <div class="axis-row">
+                <label for="yMinInput">y min</label>
+                <input id="yMinInput" type="number" step="any" value="0">
+                <label for="yMaxInput">y max</label>
+                <input id="yMaxInput" type="number" step="any" value="30">
+            </div>
+        </div>
+        <section id="resultsPanel">
+            <div class="control-row">
+                <input id="autoDegreeToggle" type="checkbox">
+                <label for="autoDegreeToggle">Auto detect polynomial degree</label>
+            </div>
+
+            <div class="control-row">
+                <label for="degreeInput">Polynomial degree</label>
+                <input id="degreeInput" type="number" min="1" max="20" step="1" value="2">
+            </div>
+
+            <div class="control-row">
+                <input id="manualPolylineToggle" type="checkbox">
+                <label for="manualPolylineToggle">Plot other polyline</label>
+            </div>
+
+            <div id="manualCoeffControls" class="control-row hidden">
+                <label for="manualCoeffsInput">Coefficients (highest degree first)</label>
+                <input id="manualCoeffsInput" type="text" placeholder="Example: 1.2, -0.8, 0.4, 5">
+            </div>
+
+            <h2>Fitted Equation</h2>
+            <div id="status" class="status"></div>
+            <div id="equation" class="equation"></div>
+
+            <div id="snippetToggleRow" class="control-row">
+                <input id="snippetToggle" type="checkbox">
+                <label for="snippetToggle">Generate function snippet</label>
+            </div>
+
+            <div id="snippetControls" class="control-row hidden">
+                <label for="languageSelect">Language</label>
+                <select id="languageSelect">
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                </select>
+            </div>
+
+            <section id="snippetSection" class="hidden">
+                <h2>Generated Function</h2>
+                <pre id="snippet"></pre>
+            </section>
+        </section>
+    </section>
+</div>
+
+<script src="./js/chart.js"></script>
+<script>
+    const dataInput = document.getElementById("dataInput");
+    const autoDegreeToggle = document.getElementById("autoDegreeToggle");
+    const degreeInput = document.getElementById("degreeInput");
+    const snippetToggle = document.getElementById("snippetToggle");
+    const languageSelect = document.getElementById("languageSelect");
+    const snippetControls = document.getElementById("snippetControls");
+    const snippetSection = document.getElementById("snippetSection");
+    const manualPolylineToggle = document.getElementById("manualPolylineToggle");
+    const manualCoeffControls = document.getElementById("manualCoeffControls");
+    const manualCoeffsInput = document.getElementById("manualCoeffsInput");
+    const autoscaleToggle = document.getElementById("autoscaleToggle");
+    const axisControls = document.getElementById("axisControls");
+    const xMinInput = document.getElementById("xMinInput");
+    const xMaxInput = document.getElementById("xMaxInput");
+    const yMinInput = document.getElementById("yMinInput");
+    const yMaxInput = document.getElementById("yMaxInput");
+    const statusEl = document.getElementById("status");
+    const equationEl = document.getElementById("equation");
+    const snippetEl = document.getElementById("snippet");
+
+    const maxDegree = 20;
+    let chart;
+    let hasCustomAxisInputs = false;
+    let hasUserManualCoeffs = false;
+
+    function debounce(fn, waitMs) {
+        let timerId;
+        return function debounced(...args) {
+            clearTimeout(timerId);
+            timerId = setTimeout(() => fn(...args), waitMs);
+        };
+    }
+
+    function formatNumber(value) {
+        if (!Number.isFinite(value)) {
+            return "NaN";
+        }
+        const abs = Math.abs(value);
+        if (abs > 0 && abs < 1e-6) {
+            return value.toExponential(15);
+        }
+        return parseFloat(value.toPrecision(15)).toString();
+    }
+
+    function parsePoints(rawText) {
+        const lines = rawText.split(/\r?\n/);
+        const points = [];
+        const errors = [];
+
+        lines.forEach((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) {
+                return;
+            }
+
+            const parts = trimmed.split(/[\t,\s]+/).filter(Boolean);
+            if (parts.length < 2) {
+                errors.push(`Row ${idx + 1}: expected at least two values.`);
+                return;
+            }
+
+            const x = Number(parts[0]);
+            const y = Number(parts[1]);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                errors.push(`Row ${idx + 1}: invalid numeric pair "${trimmed}".`);
+                return;
+            }
+
+            points.push({ x, y });
+        });
+
+        return { points, errors };
+    }
+
+    function parseManualCoefficients(rawText) {
+        const tokens = rawText
+            .trim()
+            .split(/[\s,]+/)
+            .filter(Boolean);
+
+        if (tokens.length === 0) {
+            throw new Error("Enter at least one coefficient for the extra polyline.");
+        }
+
+        const highestFirst = tokens.map((token) => Number(token));
+        if (highestFirst.some((value) => !Number.isFinite(value))) {
+            throw new Error("Extra polyline coefficients must be valid numbers.");
+        }
+
+        return highestFirst.reverse();
+    }
+
+    // Mirrors spreadsheet LINEST behavior by solving least squares with QR,
+    // instead of normal equations, which are more numerically fragile.
+    function solveLeastSquaresQR(matrix, rhs) {
+        const rowCount = matrix.length;
+        const colCount = matrix[0].length;
+        const a = matrix.map((row) => row.slice());
+        const b = rhs.slice();
+
+        for (let col = 0; col < colCount; col += 1) {
+            let normSq = 0;
+            for (let row = col; row < rowCount; row += 1) {
+                const value = a[row][col];
+                normSq += value * value;
+            }
+            const norm = Math.sqrt(normSq);
+            if (norm < 1e-14) {
+                throw new Error("Singular matrix. Try reducing polynomial degree.");
+            }
+
+            const sign = a[col][col] >= 0 ? 1 : -1;
+            const u1 = a[col][col] + sign * norm;
+            const v = new Array(rowCount - col).fill(0);
+            v[0] = u1;
+            for (let row = col + 1; row < rowCount; row += 1) {
+                v[row - col] = a[row][col];
+            }
+
+            let vNormSq = 0;
+            for (let i = 0; i < v.length; i += 1) {
+                vNormSq += v[i] * v[i];
+            }
+            if (vNormSq < 1e-20) {
+                continue;
+            }
+            const beta = 2 / vNormSq;
+
+            for (let k = col; k < colCount; k += 1) {
+                let dot = 0;
+                for (let i = 0; i < v.length; i += 1) {
+                    dot += v[i] * a[col + i][k];
+                }
+                const scale = beta * dot;
+                for (let i = 0; i < v.length; i += 1) {
+                    a[col + i][k] -= scale * v[i];
+                }
+            }
+
+            let dotB = 0;
+            for (let i = 0; i < v.length; i += 1) {
+                dotB += v[i] * b[col + i];
+            }
+            const scaleB = beta * dotB;
+            for (let i = 0; i < v.length; i += 1) {
+                b[col + i] -= scaleB * v[i];
+            }
+        }
+
+        const solution = new Array(colCount).fill(0);
+        for (let row = colCount - 1; row >= 0; row -= 1) {
+            let sum = b[row];
+            for (let col = row + 1; col < colCount; col += 1) {
+                sum -= a[row][col] * solution[col];
+            }
+            const diag = a[row][row];
+            if (Math.abs(diag) < 1e-14) {
+                throw new Error("Singular matrix. Try reducing polynomial degree.");
+            }
+            solution[row] = sum / diag;
+        }
+        return solution;
+    }
+
+    function fitPolynomial(points, degree) {
+        const columnCount = degree + 1;
+        const matrix = points.map((point) => {
+            const row = new Array(columnCount).fill(0);
+            let xPow = 1;
+            row[columnCount - 1] = xPow;
+            for (let col = columnCount - 2; col >= 0; col -= 1) {
+                xPow *= point.x;
+                row[col] = xPow;
+            }
+            return row;
+        });
+        const rhs = points.map((point) => point.y);
+
+        // LINEST returns coefficients highest-power-first; convert to
+        // constant-first for the rest of this app.
+        const highestFirst = solveLeastSquaresQR(matrix, rhs);
+        return highestFirst.slice().reverse();
+    }
+
+    function evaluatePolynomial(coeffs, x) {
+        let result = 0;
+        for (let i = coeffs.length - 1; i >= 0; i -= 1) {
+            result = result * x + coeffs[i];
+        }
+        return result;
+    }
+
+    function buildEquation(coeffs) {
+        const terms = [];
+        for (let power = coeffs.length - 1; power >= 0; power -= 1) {
+            const coef = coeffs[power];
+            const sign = coef >= 0 ? "+" : "-";
+            const absCoef = formatNumber(Math.abs(coef));
+            let term = "";
+            if (power === 0) {
+                term = `${absCoef}`;
+            } else if (power === 1) {
+                term = `${absCoef}x`;
+            } else {
+                term = `${absCoef}x^${power}`;
+            }
+
+            if (terms.length === 0) {
+                terms.push(coef >= 0 ? term : `-${term}`);
+            } else {
+                terms.push(` ${sign} ${term}`);
+            }
+        }
+
+        return `y = ${terms.join("")}`;
+    }
+
+    function generateSnippet(coeffs, language) {
+        const highestFirst = coeffs.slice().reverse();
+        const formatted = highestFirst.map((c) => formatNumber(c));
+        if (language === "python") {
+            return [
+                "def f(x):",
+                "    coeffs = [" + formatted.join(", ") + "]",
+                "    y = 0.0",
+                "    for c in coeffs:",
+                "        y = y * x + c",
+                "    return y"
+            ].join("\n");
+        }
+        if (language === "java") {
+            return [
+                "public static double f(double x) {",
+                "    double[] coeffs = new double[] { " + formatted.join(", ") + " };",
+                "    double y = 0.0;",
+                "    for (int i = 0; i < coeffs.length; i++) {",
+                "        y = y * x + coeffs[i];",
+                "    }",
+                "    return y;",
+                "}"
+            ].join("\n");
+        }
+        return [
+            "double f(double x) {",
+            "    const double coeffs[] = { " + formatted.join(", ") + " };",
+            "    const int n = sizeof(coeffs) / sizeof(coeffs[0]);",
+            "    double y = 0.0;",
+            "    for (int i = 0; i < n; ++i) {",
+            "        y = y * x + coeffs[i];",
+            "    }",
+            "    return y;",
+            "}"
+        ].join("\n");
+    }
+
+    function formatCoefficientsHighestFirst(coeffs) {
+        return coeffs
+            .slice()
+            .reverse()
+            .map((coef) => formatNumber(coef))
+            .join(", ");
+    }
+
+    function sampledCurve(coeffs, minX, maxX) {
+        let lo = minX;
+        let hi = maxX;
+        if (lo === hi) {
+            lo -= 1;
+            hi += 1;
+        }
+        const count = 200;
+        const step = (hi - lo) / (count - 1);
+        const points = [];
+        for (let i = 0; i < count; i += 1) {
+            const x = lo + i * step;
+            points.push({ x, y: evaluatePolynomial(coeffs, x) });
+        }
+        return points;
+    }
+
+    function computeMetrics(points, coeffs) {
+        const n = points.length;
+        let sumY = 0;
+        for (const p of points) {
+            sumY += p.y;
+        }
+        const meanY = sumY / n;
+
+        let sse = 0;
+        let sst = 0;
+        for (const p of points) {
+            const yHat = evaluatePolynomial(coeffs, p.x);
+            const residual = p.y - yHat;
+            sse += residual * residual;
+            const centered = p.y - meanY;
+            sst += centered * centered;
+        }
+
+        let r2 = 1;
+        if (sst > 0) {
+            r2 = 1 - sse / sst;
+        } else if (sse > 0) {
+            r2 = 0;
+        }
+
+        return { sse, sst, r2 };
+    }
+
+    function chooseAutoDegree(points, maxCandidateDegree) {
+        let best = null;
+        for (let degree = 1; degree <= maxCandidateDegree; degree += 1) {
+            try {
+                const coeffs = fitPolynomial(points, degree);
+                const metrics = computeMetrics(points, coeffs);
+                const n = points.length;
+                const denom = n - degree - 1;
+                let adjustedR2 = metrics.r2;
+
+                if (denom > 0 && metrics.sst > 0) {
+                    adjustedR2 = 1 - (1 - metrics.r2) * ((n - 1) / denom);
+                }
+
+                const candidate = { degree, coeffs, metrics, adjustedR2 };
+                if (
+                    !best ||
+                    candidate.adjustedR2 > best.adjustedR2 + 1e-12 ||
+                    (Math.abs(candidate.adjustedR2 - best.adjustedR2) <= 1e-12 && candidate.metrics.sse < best.metrics.sse - 1e-12) ||
+                    (Math.abs(candidate.adjustedR2 - best.adjustedR2) <= 1e-12 && Math.abs(candidate.metrics.sse - best.metrics.sse) <= 1e-12 && candidate.degree < best.degree)
+                ) {
+                    best = candidate;
+                }
+            } catch (_error) {
+                // Ignore numerically unstable candidates.
+            }
+        }
+        return best;
+    }
+
+    function updateChart(rawPoints, fitPoints, axisLimits) {
+        if (!chart) {
+            const ctx = document.getElementById("fitChart").getContext("2d");
+            chart = new Chart(ctx, {
+                data: {
+                    datasets: [
+                        {
+                            type: "scatter",
+                            label: "Raw data",
+                            data: [],
+                            pointRadius: 4,
+                            pointBackgroundColor: "#3ea6ff",
+                            borderColor: "#3ea6ff",
+                            showLine: false
+                        },
+                        {
+                            type: "line",
+                            label: "Polynomial fit",
+                            data: [],
+                            parsing: false,
+                            borderColor: "#34d399",
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0
+                        },
+                        {
+                            type: "line",
+                            label: "Manual coefficients",
+                            data: [],
+                            parsing: false,
+                            borderColor: "#f59e0b",
+                            borderWidth: 2,
+                            borderDash: [8, 5],
+                            pointRadius: 0,
+                            tension: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    scales: {
+                        x: {
+                            type: "linear",
+                            title: { display: true, text: "x", color: "#d5d5d5" },
+                            ticks: { color: "#bdbdbd" },
+                            grid: { color: "#2f2f2f" }
+                        },
+                        y: {
+                            title: { display: true, text: "y", color: "#d5d5d5" },
+                            ticks: { color: "#bdbdbd" },
+                            grid: { color: "#2f2f2f" }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: "#d5d5d5" }
+                        }
+                    }
+                }
+            });
+        }
+
+        chart.data.datasets[0].data = rawPoints;
+        chart.data.datasets[1].data = fitPoints;
+        chart.data.datasets[2].data = [];
+        chart.options.scales.x.min = axisLimits ? axisLimits.xMin : undefined;
+        chart.options.scales.x.max = axisLimits ? axisLimits.xMax : undefined;
+        chart.options.scales.y.min = axisLimits ? axisLimits.yMin : undefined;
+        chart.options.scales.y.max = axisLimits ? axisLimits.yMax : undefined;
+        chart.update("none");
+    }
+
+    function setStatus(message, isError) {
+        statusEl.textContent = message || "";
+        statusEl.classList.toggle("error", !!isError);
+    }
+
+    function syncSnippetVisibility() {
+        const visible = snippetToggle.checked;
+        snippetControls.classList.toggle("hidden", !visible);
+        snippetSection.classList.toggle("hidden", !visible);
+    }
+
+    function syncManualPolylineVisibility() {
+        manualCoeffControls.classList.toggle("hidden", !manualPolylineToggle.checked);
+    }
+
+    function syncAxisVisibility() {
+        axisControls.classList.toggle("hidden", autoscaleToggle.checked);
+    }
+
+    function populateAxisInputsFromChartScale() {
+        if (!chart || !chart.scales || !chart.scales.x || !chart.scales.y) {
+            return;
+        }
+        const xMin = chart.scales.x.min;
+        const xMax = chart.scales.x.max;
+        const yMin = chart.scales.y.min;
+        const yMax = chart.scales.y.max;
+
+        if (Number.isFinite(xMin) && Number.isFinite(xMax) && Number.isFinite(yMin) && Number.isFinite(yMax)) {
+            xMinInput.value = formatNumber(xMin);
+            xMaxInput.value = formatNumber(xMax);
+            yMinInput.value = formatNumber(yMin);
+            yMaxInput.value = formatNumber(yMax);
+        }
+    }
+
+    function getCurveXRange(dataMinX, dataMaxX, axisLimits) {
+        if (axisLimits) {
+            return { xStart: axisLimits.xMin, xEnd: axisLimits.xMax };
+        }
+
+        const span = dataMaxX - dataMinX;
+        const pad = span > 0 ? span * 0.05 : 1;
+        return { xStart: dataMinX - pad, xEnd: dataMaxX + pad };
+    }
+
+    function recompute() {
+        try {
+            const { points, errors } = parsePoints(dataInput.value);
+            if (errors.length > 0) {
+                equationEl.textContent = "";
+                snippetEl.textContent = "";
+                setStatus(errors[0], true);
+                if (chart) {
+                    chart.data.datasets[0].data = [];
+                    chart.data.datasets[1].data = [];
+                    chart.data.datasets[2].data = [];
+                    chart.update("none");
+                }
+                return;
+            }
+
+            if (points.length < 2) {
+                equationEl.textContent = "";
+                snippetEl.textContent = "";
+                setStatus("Enter at least two valid rows of data.", true);
+                if (chart) {
+                    chart.data.datasets[0].data = [];
+                    chart.data.datasets[1].data = [];
+                    chart.data.datasets[2].data = [];
+                    chart.update("none");
+                }
+                return;
+            }
+
+            const degreeRaw = Number(degreeInput.value);
+            const safeDegree = Math.max(1, Math.min(maxDegree, Math.floor(degreeRaw)));
+            const maxCandidateDegree = Math.max(1, Math.min(maxDegree, points.length - 1));
+            degreeInput.value = String(safeDegree);
+
+            let finalDegree = safeDegree;
+            let coeffs;
+            let metrics;
+            let autoSelected = false;
+
+            if (autoDegreeToggle.checked) {
+                const autoChoice = chooseAutoDegree(points, maxCandidateDegree);
+                if (!autoChoice) {
+                    equationEl.textContent = "";
+                    snippetEl.textContent = "";
+                    setStatus("Could not auto-detect a stable degree for this dataset.", true);
+                    if (chart) {
+                        chart.data.datasets[0].data = points;
+                        chart.data.datasets[1].data = [];
+                        chart.data.datasets[2].data = [];
+                        chart.update("none");
+                    }
+                    return;
+                }
+                finalDegree = autoChoice.degree;
+                coeffs = autoChoice.coeffs;
+                metrics = autoChoice.metrics;
+                autoSelected = true;
+                degreeInput.value = String(finalDegree);
+            } else if (points.length < safeDegree + 1) {
+                equationEl.textContent = "";
+                snippetEl.textContent = "";
+                setStatus(`Need at least ${safeDegree + 1} points for degree ${safeDegree}.`, true);
+                if (chart) {
+                    chart.data.datasets[0].data = points;
+                    chart.data.datasets[1].data = [];
+                    chart.data.datasets[2].data = [];
+                    chart.update("none");
+                }
+                return;
+            } else {
+                coeffs = fitPolynomial(points, safeDegree);
+                metrics = computeMetrics(points, coeffs);
+            }
+
+            if (!hasUserManualCoeffs) {
+                manualCoeffsInput.value = formatCoefficientsHighestFirst(coeffs);
+            }
+
+            equationEl.textContent = buildEquation(coeffs);
+
+            if (snippetToggle.checked) {
+                snippetEl.textContent = generateSnippet(coeffs, languageSelect.value);
+            } else {
+                snippetEl.textContent = "";
+            }
+
+            const xs = points.map((p) => p.x);
+            const minX = Math.min(...xs);
+            const maxX = Math.max(...xs);
+            let axisLimits = null;
+            if (!autoscaleToggle.checked) {
+                const xMin = Number(xMinInput.value);
+                const xMax = Number(xMaxInput.value);
+                const yMin = Number(yMinInput.value);
+                const yMax = Number(yMaxInput.value);
+                if (!Number.isFinite(xMin) || !Number.isFinite(xMax) || !Number.isFinite(yMin) || !Number.isFinite(yMax)) {
+                    throw new Error("Axis limits must be valid numbers.");
+                }
+                if (!(xMin < xMax)) {
+                    throw new Error("x min must be less than x max.");
+                }
+                if (!(yMin < yMax)) {
+                    throw new Error("y min must be less than y max.");
+                }
+                axisLimits = { xMin, xMax, yMin, yMax };
+            }
+
+            const curveRange = getCurveXRange(minX, maxX, axisLimits);
+            const fitPoints = sampledCurve(coeffs, curveRange.xStart, curveRange.xEnd);
+            let manualPoints = [];
+            let manualLabelSuffix = "";
+            if (manualPolylineToggle.checked) {
+                const manualCoeffs = parseManualCoefficients(manualCoeffsInput.value);
+                manualPoints = sampledCurve(manualCoeffs, curveRange.xStart, curveRange.xEnd);
+                manualLabelSuffix = ` + manual degree ${manualCoeffs.length - 1}`;
+            }
+            updateChart(points, fitPoints, axisLimits);
+            if (chart) {
+                chart.data.datasets[2].data = manualPoints;
+                chart.update("none");
+            }
+            const degreeLabel = autoSelected ? `auto degree ${finalDegree}` : `degree ${finalDegree}`;
+            setStatus(`Fit updated with ${points.length} points (${degreeLabel}${manualLabelSuffix}). R^2 = ${formatNumber(metrics.r2)}`, false);
+        } catch (error) {
+            equationEl.textContent = "";
+            snippetEl.textContent = "";
+            setStatus(error.message || "Failed to compute polynomial fit.", true);
+            if (chart) {
+                chart.data.datasets[0].data = [];
+                chart.data.datasets[1].data = [];
+                chart.data.datasets[2].data = [];
+                chart.update("none");
+            }
+        }
+    }
+
+    const recomputeDebounced = debounce(recompute, 180);
+    dataInput.addEventListener("input", recomputeDebounced);
+    degreeInput.addEventListener("input", recompute);
+    autoDegreeToggle.addEventListener("change", () => {
+        degreeInput.disabled = autoDegreeToggle.checked;
+        recompute();
+    });
+    snippetToggle.addEventListener("change", () => {
+        syncSnippetVisibility();
+        recompute();
+    });
+    languageSelect.addEventListener("change", recompute);
+    manualPolylineToggle.addEventListener("change", () => {
+        syncManualPolylineVisibility();
+        recompute();
+    });
+    manualCoeffsInput.addEventListener("input", () => {
+        hasUserManualCoeffs = true;
+        recomputeDebounced();
+    });
+    autoscaleToggle.addEventListener("change", () => {
+        if (!autoscaleToggle.checked && !hasCustomAxisInputs) {
+            populateAxisInputsFromChartScale();
+        }
+        syncAxisVisibility();
+        recompute();
+    });
+    xMinInput.addEventListener("input", () => {
+        hasCustomAxisInputs = true;
+        recomputeDebounced();
+    });
+    xMaxInput.addEventListener("input", () => {
+        hasCustomAxisInputs = true;
+        recomputeDebounced();
+    });
+    yMinInput.addEventListener("input", () => {
+        hasCustomAxisInputs = true;
+        recomputeDebounced();
+    });
+    yMaxInput.addEventListener("input", () => {
+        hasCustomAxisInputs = true;
+        recomputeDebounced();
+    });
+
+    syncSnippetVisibility();
+    syncManualPolylineVisibility();
+    syncAxisVisibility();
+    degreeInput.disabled = autoDegreeToggle.checked;
+    recompute();
+</script>
+</body>
+</html>
