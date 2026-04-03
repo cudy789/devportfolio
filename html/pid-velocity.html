@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Position PID Controller Simulation</title>
+    <title>Velocity PID Controller Simulation</title>
     <style>
         :root {
             --bg: #121212;
@@ -310,16 +310,16 @@
 
         <div class="content-column">
             <div class="content-header">
-                <h1>Position PID Controller Simulation</h1>
+                <h1>Velocity PID Controller Simulation</h1>
             </div>
             <div class="content-row">
                 <div class="content-container">
                     <canvas id="canvas" width="400" height="400"></canvas>
                     <div class="control-group" id="perturb-control-group">
                         <label title="Peak torque of the disturbance envelope; it decays exponentially over time.">Disturbance size
-                            <input type="number" id="perturb" step="1" value="10">
+                            <input type="number" id="perturb" step="1" value="-10">
                         </label>
-                        <input type="range" id="perturb-slider" min="-100" max="100" step="1" value="10">
+                        <input type="range" id="perturb-slider" min="-100" max="100" step="1" value="-10">
                         <div class="control-group checkbox-row">
                             <label title="When enabled, applies the same perturbation envelope repeatedly at the set rate.">
                                 <input type="checkbox" id="auto-perturb">
@@ -355,58 +355,58 @@
         <div id="controls">
             <h2>Gains</h2>
             <div class="control-group">
-                <label title="Proportional gain: affects how strongly the arm reacts to error">P
+                <label title="Proportional gain: affects how strongly the controller reacts to velocity error">P
                     <input type="number" id="kp" step="0.1" value="5">
                 </label>
-                <input type="range" id="kp-slider" min="0" max="100" step="0.1" value="5">
+                <input type="range" id="kp-slider" min="0" max="30" step="0.1" value="5">
             </div>
 
             <div class="control-group">
-                <label title="Integral gain: accumulates past errors to eliminate steady-state offset">I
+                <label title="Integral gain: accumulates past velocity errors to eliminate steady-state offset">I
                     <input type="number" id="ki" step="0.01" value="0">
                 </label>
-                <input type="range" id="ki-slider" min="0" max="1" step="0.01" value="0.0">
+                <input type="range" id="ki-slider" min="0" max="10" step="0.01" value="0.0">
             </div>
 
-            <div class="control-group">
-                <label title="Derivative gain: predicts future error to dampen oscillations">D
-                    <input type="number" id="kd" step="0.1" value="0">
-                </label>
-                <input type="range" id="kd-slider" min="0" max="10" step="0.1" value="0">
-            </div>
+<!--            <div class="control-group">-->
+<!--                <label title="Derivative gain: dampens oscillations in velocity">D-->
+<!--                    <input type="number" id="kd" step="0.001" value="0">-->
+<!--                </label>-->
+<!--                <input type="range" id="kd-slider" min="0" max=".5" step="0.001" value="0">-->
+<!--            </div>-->
 
             <div class="control-group">
-                <label title="Feed forward gain: applies an offset force proportional to the sin of the target angle">FF
+                <label title="Feed forward: adds torque proportional to the velocity setpoint (helps overcome drag at steady state)">FF
                     <input type="number" id="kff" step="0.01" value="0">
                 </label>
-                <input type="range" id="kff-slider" min="0" max="2" step="0.01" value="0">
+                <input type="range" id="kff-slider" min="0" max="5" step="0.01" value="0">
             </div>
 
             <h2>Parameters</h2>
 
             <div class="control-group">
-                <label title="Target angle of the arm in degrees">Target Angle (°)
-                    <input type="number" id="target" step="1" value="0">
+                <label title="Target angular velocity (setpoint) in degrees per second">Target Velocity (°/s)
+                    <input type="number" id="target" step="1" value="90">
                 </label>
-                <input type="range" id="target-slider" min="-180" max="180" step="1" value="0">
+                <input type="range" id="target-slider" min="0" max="720" step="1" value="90">
             </div>
 
             <div class="control-group">
-                <label title="Mass of the arm">Mass
+                <label title="Mass (rotating inertia scaling)">Mass
                     <input type="number" id="mass" step="0.1" value="1">
                 </label>
                 <input type="range" id="mass-slider" min="0.5" max="10" step="0.1" value="1">
             </div>
 
             <div class="control-group">
-                <label title="Drag adds a damping force to the arm. This is neither static NOR kinetic friction. Drag is proportional to velocity.">Drag
+                <label title="Drag adds a damping torque proportional to angular velocity.">Drag
                     <input type="number" id="drag" step="0.05" value="1">
                 </label>
                 <input type="range" id="drag-slider" min="0.0" max="5" step="0.05" value="1">
             </div>
 
             <div class="control-group">
-                <label title="Kinetic friction is a force acting against the motion of the arm. It is NOT proportional to velocity, it is constant. Non-zero kinetic friction also adds a small amount of static friction proportional to the mass in this simulation.">Kinetic
+                <label title="Kinetic friction is a torque acting against the motion. It is NOT proportional to velocity. Non-zero kinetic friction also adds a small amount of static friction proportional to the mass in this simulation.">Kinetic
                     Friction
                     <input type="number" id="kinetic-friction" step="0.05" value="0.05">
                 </label>
@@ -414,17 +414,12 @@
             </div>
 
             <div class="control-group">
-                <label title="Process noise models the error when measuring the angle of the arm">Process Noise
+                <label title="Process noise models error when measuring angular velocity">Process Noise
                     <input type="number" id="process-noise" step="0.0005" value="0.0">
                 </label>
                 <input type="range" id="process-noise-slider" min="0.0" max="0.05" step="0.0005" value="0.0">
             </div>
 
-            <div class="control-group">
-                <label title="Gravity enabled/disabled">Gravity
-                    <input type="checkbox" id="gravity" value="" checked>
-                </label>
-            </div>
             <div class="control-group">
                 <label title="Deadtime is the delay between when the calculated controller output is applied to the mechanism. Enable to delay the output by 1 timestep, disable for instant control.">Controller
                     Deadtime
@@ -444,10 +439,17 @@
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    // Arm state
+    const SIM_DISPLAY_WHEEL_SIZE = 110;
+    const SIM_DISPLAY_WHEEL_RADIUS_PX = SIM_DISPLAY_WHEEL_SIZE / 2;
+
+    /** Horizontal world scroll (px); advances at ω * r so ground matches wheel contact speed */
+    let groundScrollPx = 0;
+
+    // Rotation state (angle integrates angular velocity for display)
     let angle = 0;
+    let targetWheelAngle = 0;
     let angularVelocity = 0;
-    let targetAngle = 0;
+    let targetAngularVelocity = (Math.PI / 180.0) * 90;
 
     // PID state
     let integral = 0;
@@ -457,7 +459,6 @@
     // Parameters
     let kp = 5, ki = 0.0, kd = 0, kff = 0.0;
     let mass = 1;
-    let gravity = 9.8;
     let armLength = 75;
     let drag = 1.0;
     let kineticFriction = 0.05;
@@ -468,7 +469,7 @@
     let deadtime = true;
 
     // Disturbance: exponential decay envelope peak * exp(-t / tau), not an instantaneous impulse
-    let disturbanceMag = 10;
+    let disturbanceMag = -10;
     let perturbElapsed = -1;
     let perturbPeak = 0;
     const perturbDecayTau = 0.12;
@@ -536,9 +537,9 @@
     // Bind all inputs
     bindInputSlider("kp", "kp-slider", v => v !== undefined ? (kp = v) : kp);
     bindInputSlider("ki", "ki-slider", v => v !== undefined ? (ki = v) : ki);
-    bindInputSlider("kd", "kd-slider", v => v !== undefined ? (kd = v) : kd);
+    // bindInputSlider("kd", "kd-slider", v => v !== undefined ? (kd = v) : kd);
     bindInputSlider("kff", "kff-slider", v => v !== undefined ? (kff = v) : kff);
-    bindInputSlider("target", "target-slider", v => v !== undefined ? (targetAngle = v * Math.PI / 180) : targetAngle);
+    bindInputSlider("target", "target-slider", v => v !== undefined ? (targetAngularVelocity = v * Math.PI / 180) : targetAngularVelocity * 180 / Math.PI);
     bindInputSlider("mass", "mass-slider", v => v !== undefined ? (mass = v) : mass);
     bindInputSlider("drag", "drag-slider", v => v !== undefined ? (drag = v) : drag);
     bindInputSlider("kinetic-friction", "kinetic-friction-slider", v => v !== undefined ? (kineticFriction = v) : kineticFriction);
@@ -555,7 +556,6 @@
         }
         return autoPerturbFreqHz;
     });
-    bindInputCheckbox("gravity", v => v ? (gravity = 9.8) : (gravity = 0))
     bindInputCheckbox("deadtime", v => v ? (deadtime = true) : (deadtime = false))
 
     const autoPerturbCheckbox = document.getElementById("auto-perturb");
@@ -594,8 +594,10 @@
     const resetButton = document.getElementById("reset");
     resetButton.addEventListener("click", e => {
         angle = 0;
+        targetWheelAngle = 0;
+        groundScrollPx = 0;
         angularVelocity = 0;
-        targetAngle = 0;
+        targetAngularVelocity = 0;
         integral = 0;
         lastDt = nominalDt;
 
@@ -615,7 +617,6 @@
         autoPerturbFreqGroup.classList.remove("is-visible");
     });
 
-    // Drag interaction (janky torque input)
     // Drag interaction (mouse + touch via Pointer Events)
     let dragging = false;
     const pivot = {x: canvas.width / 2, y: canvas.height * 0.6};
@@ -647,30 +648,26 @@
 
         const {x, y} = getCanvasCoords(e);
 
-        // Vector from pivot to pointer
         const mx = x - pivot.x;
         const my = y - pivot.y;
 
-        // Arm direction (unit vector)
         const armDir = {x: Math.sin(angle), y: -Math.cos(angle)};
 
-        // Perpendicular to arm (torque direction)
         const armPerp = {x: -armDir.y, y: armDir.x};
 
-        // Project pointer vector onto perpendicular
         const forceMag = (mx * armPerp.x + my * armPerp.y) * 0.0025;
 
         angularVelocity += forceMag;
     });
 
     // Load images
-    const armImage = new Image();
-    armImage.src = './pid_sim_images/arm.png';
-    armImage.onload = () => {
-        console.log("Arm image loaded");
+    const wheelImage = new Image();
+    wheelImage.src = './pid_sim_images/wheel.png';
+    wheelImage.onload = () => {
+        console.log("Wheel image loaded");
     };
     const robotBaseImage = new Image();
-    robotBaseImage.src = './pid_sim_images/robot_base.png';
+    robotBaseImage.src = './pid_sim_images/robot_base_zoomed.png';
     robotBaseImage.onload = () => {
         console.log("Robot base image loaded");
     };
@@ -680,24 +677,19 @@
     function update() {
         accumTime += renderSpeed;
         while (accumTime >= nominalDt) {
-            // Main PID and physics calculations
-            // If deadtime enabled, error is always one time step behind
-            let error = deadtime ? lastError : targetAngle - angle;
-            // Add process noises, if enabled
+            let error = deadtime ? lastError : targetAngularVelocity - angularVelocity;
             if (processNoise > 0 && dt > 0) {
                 error += gaussianSample(0, processNoise);
             }
 
             ki > 0 ? integral += error * dt : integral = 0;
-            const derivative = dt > 0 ? (error - lastLastError) / dt : 0; // always use an updated lastLastError for derivative calculation, which gets applied correctly when deadtime is enabled.
-            const control = kp * error + ki * integral + kd * derivative + -kff * Math.sin(targetAngle);
-            lastError = deadtime ? targetAngle - angle : error;
+            const derivative = dt > 0 ? (error - lastLastError) / dt : 0;
+            const control = kp * error + ki * integral + kd * derivative + kff * targetAngularVelocity;
+            lastError = deadtime ? targetAngularVelocity - angularVelocity : error;
             lastLastError = error;
 
-            // Magic numbers to scale everything appropriately
             const inertia = mass * armLength * armLength * 0.00005;
-            const torqueGravity = mass * gravity * armLength * Math.sin(angle) * 0.001;
-            torque = control + torqueGravity;
+            torque = control;
 
             if (autoPerturbEnabled && autoPerturbFreqHz > 0) {
                 timeSinceAutoPerturb += dt;
@@ -717,9 +709,8 @@
                 }
             }
 
-            // Limit max torque
-            torque = torque > 1.0e3 ? 1.0e3 : torque;
-            torque = torque < -1.0e3 ? -1.0e3 : torque;
+            torque = torque > 1.0e2 ? 1.0e2 : torque;
+            torque = torque < -1.0e2 ? -1.0e2 : torque;
 
             if (angularVelocity > 0) {
                 torque -= kineticFriction;
@@ -730,12 +721,13 @@
 
             let angularAcc = torque / inertia;
             angularVelocity += angularAcc * dt;
-            // This is static friction. Don't freeze motion if we have large control force
             const staticFrictionMagicNumber = 0.01 / mass;
             if (Math.abs(kineticFriction) > 0 && Math.abs(angularVelocity) < staticFrictionMagicNumber && Math.abs(angularAcc) * dt < staticFrictionMagicNumber) {
                 angularVelocity = 0;
             }
             angle += angularVelocity * dt;
+            targetWheelAngle += targetAngularVelocity * dt;
+            groundScrollPx += angularVelocity * SIM_DISPLAY_WHEEL_RADIUS_PX * dt;
             chartAccumulator += dt;
             accumTime -= dt;
             draw();
@@ -743,67 +735,137 @@
 
 
         if (chartAccumulator >= chartInterval) {
-            updateChart();  // add new data to plot
+            updateChart();
             chartAccumulator = 0;
         }
 
         requestAnimationFrame(update);
     }
 
+    function fract(x) {
+        return x - Math.floor(x);
+    }
+
+    function hash01(n) {
+        return fract(Math.sin(n * 127.1 + 311.7) * 43758.5453123);
+    }
+
+    function drawGroundTexture(ctx, width, yTop, scrollPx) {
+        const bandH = 20;
+        ctx.fillStyle = "#1a1a1a";
+        ctx.fillRect(0, yTop, width, bandH);
+
+        const bigPeriod = 86;
+        const bigR = 11;
+        // for (let k = Math.floor((scrollPx - bigPeriod) / bigPeriod) - 1; k <= Math.floor((scrollPx + width + bigPeriod) / bigPeriod) + 1; k++) {
+        //     const sx = k * bigPeriod - scrollPx + bigPeriod * 0.48;
+        //     ctx.fillStyle = "#2a2a2a";
+        //     ctx.beginPath();
+        //     ctx.arc(sx, yTop + bigR, bigR, Math.PI, 0);
+        //     ctx.fill();
+        //     ctx.strokeStyle = "#454545";
+        //     ctx.lineWidth = 1;
+        //     ctx.stroke();
+        // }
+
+        const ripPeriod = 31;
+        ctx.strokeStyle = "#5e5e5e";
+        ctx.lineWidth = 2;
+        for (let k = Math.floor((scrollPx - ripPeriod) / ripPeriod) - 2; k <= Math.floor((scrollPx + width + ripPeriod) / ripPeriod) + 2; k++) {
+            const x0 = k * ripPeriod - scrollPx;
+            const dip = 1+ (Math.abs(k) % 3);
+            ctx.beginPath();
+            ctx.moveTo(x0, yTop);
+            ctx.quadraticCurveTo(x0 + ripPeriod * 0.5, yTop - dip, x0 + ripPeriod, yTop);
+            ctx.stroke();
+        }
+
+        for (let x = 0; x < width; x += 4) {
+            const worldX = x + scrollPx;
+            const cell = Math.floor(worldX / 10);
+            if (hash01(cell * 1.91 + 0.2) > 0.86) {
+                const gy = yTop + 4 + hash01(cell * 3.17) * (bandH - 8);
+                ctx.fillStyle = hash01(cell) > 0.5 ? "#4a4a4a" : "#3d3d3d";
+                const s = 1 + (hash01(cell * 5) > 0.7 ? 1 : 0);
+                ctx.fillRect(x, gy, s, s);
+            }
+        }
+
+        ctx.strokeStyle = "#555";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, yTop + 0.5);
+        ctx.lineTo(width, yTop + 0.5);
+        ctx.stroke();
+    }
+
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const cx = canvas.width / 2, cy = canvas.height * 0.6;
 
-        // Ground plane
-        ctx.strokeStyle = "#444";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(0, cy + 60);
-        ctx.lineTo(canvas.width, cy + 60);
-        ctx.stroke();
+        const groundY = cy + 60;
+        drawGroundTexture(ctx, canvas.width, groundY, groundScrollPx);
 
-        // Draw arm image
         ctx.save();
         ctx.translate(cx, cy);
-        ctx.rotate(angle);
-
-        // Draw image centered on base
-        ctx.drawImage(
-            armImage,
-            -armImage.width / 2, // shift x to center horizontally
-            -armImage.height + 10, // shift y so pivot is at bottom of image
-        );
-        ctx.restore();
-
-        // Draw robot base image
-        ctx.save();
-        ctx.translate(cx, cy);
+        ctx.translate(-60, -60);
+        const rbw = robotBaseImage.width / 1.5;
+        const rbh = robotBaseImage.height / 1.5;
         ctx.drawImage(
             robotBaseImage,
-            -robotBaseImage.width / 2,
-            -robotBaseImage.height / 2 + 20
+            -rbw / 2,
+            -rbh / 2 + 20,
+            rbw,
+            rbh
         );
         ctx.restore();
 
-        // Setpoint line
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(targetAngle);
-        ctx.strokeStyle = "red";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, -armLength - 60);
-        ctx.stroke();
-        ctx.restore();
+        const wheelSize = SIM_DISPLAY_WHEEL_SIZE;
+        const wheelOffX = 80;
+        const wheelOffY = 13;
+        function drawWheelAt(offX, offY) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.translate(offX, offY);
+            ctx.rotate(angle);
+            ctx.drawImage(
+                wheelImage,
+                0,
+                0,
+                wheelImage.width,
+                wheelImage.height,
+                -wheelSize / 2,
+                -wheelSize / 2,
+                wheelSize,
+                wheelSize
+            );
+            ctx.restore();
+        }
+        drawWheelAt(wheelOffX - 275, wheelOffY);
+        drawWheelAt(wheelOffX, wheelOffY);
 
-        // Info
+        // // Setpoint: red spoke at target angular velocity (same pattern as pid.html setpoint line)
+        // ctx.save();
+        // ctx.translate(cx, cy);
+        // ctx.translate(wheelOffX, wheelOffY);
+        // ctx.rotate(targetWheelAngle);
+        // ctx.strokeStyle = "red";
+        // ctx.lineWidth = 2;
+        // ctx.beginPath();
+        // ctx.moveTo(0, 0);
+        // ctx.lineTo(0, -wheelSize / 2 - 10);
+        // ctx.stroke();
+        // ctx.restore();
+
+        const omegaDeg = angularVelocity * 180 / Math.PI;
+        const targetOmegaDeg = targetAngularVelocity * 180 / Math.PI;
         ctx.fillStyle = "#959393";
         ctx.font = "14px monospace";
         ctx.fillText("Simulation Speed: " + (renderSpeed / 0.016).toFixed(2) + "x", 10, 20);
-        ctx.fillText("Angle: " + (angle * 180 / Math.PI).toFixed(1) + "°", 10, 40);
-        ctx.fillText("Angular Velocity: " + angularVelocity.toFixed(2), 10, 60);
-        ctx.fillText("Torque: " + torque.toFixed(2), 10, 80);
+        ctx.fillText("Target Velocity: " + targetOmegaDeg.toFixed(1) + " °/s", 10, 40);
+        ctx.fillText("Velocity: " + omegaDeg.toFixed(1) + " °/s", 10, 60);
+        // ctx.fillText("Angle: " + (angle * 180 / Math.PI).toFixed(1) + "°", 10, 80);
+        // ctx.fillText("Torque: " + torque.toFixed(2), 10, 100);
         ctx.fillText("Click & drag arm, or click 'Perturb'", 10, 390);
     }
 
@@ -812,12 +874,12 @@
     const pidChart = new Chart(ctxChart, {
         type: 'line',
         data: {
-            labels: [], // time
+            labels: [],
             datasets: [
-                {label: 'Angle', data: [], borderColor: '#00d4ff', fill: false},
-                {label: 'Target Angle', data: [], borderColor: '#ff5555', fill: false},
+                {label: 'Angular Velocity', data: [], borderColor: '#00d4ff', fill: false},
+                {label: 'Target Angular Velocity', data: [], borderColor: '#ff5555', fill: false},
                 {label: 'Error', data: [], borderColor: '#16b300', fill: false, hidden: true},
-                {label: 'Angular Velocity', data: [], borderColor: '#ffaa00', fill: false, hidden: true},
+                // {label: 'Torque', data: [], borderColor: '#ffaa00', fill: false, hidden: true},
                 {label: 'Integral', data: [], borderColor: '#ff8800', fill: false, hidden: true},
             ]
         },
@@ -845,11 +907,12 @@
     function updateChart() {
         time += chartAccumulator;
         pidChart.data.labels.push(time);
-        pidChart.data.datasets[0].data.push(angle * 180 / Math.PI);
-        pidChart.data.datasets[1].data.push(targetAngle * 180 / Math.PI);
-        pidChart.data.datasets[2].data.push(lastError * 180 / Math.PI);
-        pidChart.data.datasets[3].data.push(angularVelocity);
-        pidChart.data.datasets[4].data.push(integral);
+        const degPerSec = 180 / Math.PI;
+        pidChart.data.datasets[0].data.push(angularVelocity * degPerSec);
+        pidChart.data.datasets[1].data.push(targetAngularVelocity * degPerSec);
+        pidChart.data.datasets[2].data.push(lastError * degPerSec);
+        // pidChart.data.datasets[3].data.push(torque);
+        pidChart.data.datasets[3].data.push(integral);
 
         while (pidChart.data.labels.length > 0 &&
         parseFloat(pidChart.data.labels[0]) < time - 10) {
