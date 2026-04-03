@@ -442,7 +442,7 @@
     const SIM_DISPLAY_WHEEL_SIZE = 110;
     const SIM_DISPLAY_WHEEL_RADIUS_PX = SIM_DISPLAY_WHEEL_SIZE / 2;
 
-    /** Horizontal world scroll (px); advances at ω * r so ground matches wheel contact speed */
+    // Horizontal world scroll (px); advances at ω * r so ground matches wheel contact speed
     let groundScrollPx = 0;
 
     // Rotation state (angle integrates angular velocity for display)
@@ -617,49 +617,6 @@
         autoPerturbFreqGroup.classList.remove("is-visible");
     });
 
-    // Drag interaction (mouse + touch via Pointer Events)
-    let dragging = false;
-    const pivot = {x: canvas.width / 2, y: canvas.height * 0.6};
-
-    function getCanvasCoords(event) {
-        const rect = canvas.getBoundingClientRect();
-        return {
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top
-        };
-    }
-
-    canvas.addEventListener("pointerdown", e => {
-        dragging = true;
-        canvas.setPointerCapture(e.pointerId);
-    });
-
-    canvas.addEventListener("pointerup", e => {
-        dragging = false;
-        canvas.releasePointerCapture(e.pointerId);
-    });
-
-    canvas.addEventListener("pointercancel", () => {
-        dragging = false;
-    });
-
-    canvas.addEventListener("pointermove", e => {
-        if (!dragging) return;
-
-        const {x, y} = getCanvasCoords(e);
-
-        const mx = x - pivot.x;
-        const my = y - pivot.y;
-
-        const armDir = {x: Math.sin(angle), y: -Math.cos(angle)};
-
-        const armPerp = {x: -armDir.y, y: armDir.x};
-
-        const forceMag = (mx * armPerp.x + my * armPerp.y) * 0.0025;
-
-        angularVelocity += forceMag;
-    });
-
     // Load images
     const wheelImage = new Image();
     wheelImage.src = './pid_sim_images/wheel.png';
@@ -752,22 +709,6 @@
 
     function drawGroundTexture(ctx, width, yTop, scrollPx) {
         const bandH = 20;
-        ctx.fillStyle = "#1a1a1a";
-        ctx.fillRect(0, yTop, width, bandH);
-
-        const bigPeriod = 86;
-        const bigR = 11;
-        // for (let k = Math.floor((scrollPx - bigPeriod) / bigPeriod) - 1; k <= Math.floor((scrollPx + width + bigPeriod) / bigPeriod) + 1; k++) {
-        //     const sx = k * bigPeriod - scrollPx + bigPeriod * 0.48;
-        //     ctx.fillStyle = "#2a2a2a";
-        //     ctx.beginPath();
-        //     ctx.arc(sx, yTop + bigR, bigR, Math.PI, 0);
-        //     ctx.fill();
-        //     ctx.strokeStyle = "#454545";
-        //     ctx.lineWidth = 1;
-        //     ctx.stroke();
-        // }
-
         const ripPeriod = 31;
         ctx.strokeStyle = "#5e5e5e";
         ctx.lineWidth = 2;
@@ -844,19 +785,6 @@
         drawWheelAt(wheelOffX - 275, wheelOffY);
         drawWheelAt(wheelOffX, wheelOffY);
 
-        // // Setpoint: red spoke at target angular velocity (same pattern as pid.html setpoint line)
-        // ctx.save();
-        // ctx.translate(cx, cy);
-        // ctx.translate(wheelOffX, wheelOffY);
-        // ctx.rotate(targetWheelAngle);
-        // ctx.strokeStyle = "red";
-        // ctx.lineWidth = 2;
-        // ctx.beginPath();
-        // ctx.moveTo(0, 0);
-        // ctx.lineTo(0, -wheelSize / 2 - 10);
-        // ctx.stroke();
-        // ctx.restore();
-
         const omegaDeg = angularVelocity * 180 / Math.PI;
         const targetOmegaDeg = targetAngularVelocity * 180 / Math.PI;
         ctx.fillStyle = "#959393";
@@ -864,9 +792,6 @@
         ctx.fillText("Simulation Speed: " + (renderSpeed / 0.016).toFixed(2) + "x", 10, 20);
         ctx.fillText("Target Velocity: " + targetOmegaDeg.toFixed(1) + " °/s", 10, 40);
         ctx.fillText("Velocity: " + omegaDeg.toFixed(1) + " °/s", 10, 60);
-        // ctx.fillText("Angle: " + (angle * 180 / Math.PI).toFixed(1) + "°", 10, 80);
-        // ctx.fillText("Torque: " + torque.toFixed(2), 10, 100);
-        ctx.fillText("Click & drag arm, or click 'Perturb'", 10, 390);
     }
 
     const ctxChart = document.getElementById('pidChart').getContext('2d');
@@ -911,7 +836,6 @@
         pidChart.data.datasets[0].data.push(angularVelocity * degPerSec);
         pidChart.data.datasets[1].data.push(targetAngularVelocity * degPerSec);
         pidChart.data.datasets[2].data.push(lastError * degPerSec);
-        // pidChart.data.datasets[3].data.push(torque);
         pidChart.data.datasets[3].data.push(integral);
 
         while (pidChart.data.labels.length > 0 &&
